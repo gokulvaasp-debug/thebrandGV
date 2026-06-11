@@ -235,6 +235,10 @@
                                     <p class="text-xs text-gelixer-pale/80 uppercase tracking-wider">Follow-ups</p>
                                     <p id="total-followups" class="text-2xl font-bold">0</p>
                                 </div>
+                                <div class="col-span-2 pt-2">
+                                    <p class="text-xs text-gelixer-pale/80 uppercase tracking-wider">Last Upload</p>
+                                    <p id="last-upload-date" class="text-sm font-medium">Never</p>
+                                </div>
                             </div>
                             <button onclick="setupAndReadDatabase()" class="w-full mt-2 bg-white text-gelixer-violet hover:bg-gray-100 py-2.5 rounded-lg text-sm font-bold transition-colors flex justify-center items-center shadow-lg">
                                 <i class="ph ph-arrows-clockwise mr-2"></i> Refresh from Cloud
@@ -399,7 +403,7 @@
 
         <!-- Add Comment Form -->
         <div class="p-6 border-t border-gray-200 bg-gray-50 relative">
-            <div id="saving-comment-overlay" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 hidden flex items-center justify-center">
+            <div id="saving-comment-overlay" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center" style="display: none;">
                 <div class="w-6 h-6 border-2 border-gelixer-pale border-t-gelixer-violet rounded-full animate-spin"></div>
             </div>
             <textarea id="pnl-new-comment" rows="2" placeholder="Add an operational comment or escalation note..." class="w-full text-sm border border-gray-300 rounded-lg p-3 outline-none focus:border-gelixer-violet focus:ring-1 focus:ring-gelixer-violet mb-3 resize-none"></textarea>
@@ -428,6 +432,7 @@
         let tokenClient;
         let gapiInited = false;
         let gisInited = false;
+        let pendingRetryAction = null;
 
         let db = { shipments: [], followups: [], logs: [] };
 
@@ -452,7 +457,14 @@
                         throw (tokenResponse);
                     }
                     document.getElementById('auth-overlay').style.display = 'none';
-                    setupAndReadDatabase(); // Call the new Setup Engine upon login
+                    
+                    if (pendingRetryAction) {
+                        const action = pendingRetryAction;
+                        pendingRetryAction = null;
+                        action();
+                    } else {
+                        setupAndReadDatabase(); // Call the new Setup Engine upon login
+                    }
                 },
             });
             gisInited = true;
@@ -490,7 +502,6 @@
             const loadingText = loadingUI.querySelector('p');
             
             // Switch to Dashboard view and show loading
-            nav('dashboard');
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
             document.getElementById('view-shipments').classList.remove('hidden');
             document.getElementById('page-title').innerText = 'Syncing Cloud Database';
@@ -548,6 +559,11 @@
                 await readShipmentMaster();
 
             } catch (err) {
+                if (err.status === 401 || (err.result && err.result.error && err.result.error.code === 401)) {
+                    pendingRetryAction = setupAndReadDatabase;
+                    tokenClient.requestAccessToken({prompt: ''});
+                    return;
+                }
                 loadingUI.classList.add('hidden');
                 console.error("Setup Error:", err);
                 alert("Error setting up or accessing database. Verify your Google Sheet permissions and ID.");
@@ -599,6 +615,11 @@
                 // Return to dashboard after successful sync
                 nav('dashboard');
             } catch (err) {
+                if (err.status === 401 || (err.result && err.result.error && err.result.error.code === 401)) {
+                    pendingRetryAction = readShipmentMaster;
+                    tokenClient.requestAccessToken({prompt: ''});
+                    return;
+                }
                 document.getElementById('table-loading').classList.add('hidden');
                 console.error(err);
                 alert("Error fetching from Google Sheets. Ensure you have the correct permissions.");
@@ -606,7 +627,15 @@
         }
 
 
-        // --- 4. Upload & Write Logic ---
+        // --- 4. Upload & Smart Parse Logic ---
+        
+        function parseExcelDate(val) {
+            if (!val) return new Date().toISOString();
+            // Handle raw excel serial numbers
+            if (typeof val === 'number') return new Date((val - 25569) * 86400 * 1000).toISOString();
+            return new Date(val).toISOString();
+        }
+
         async function handleFileUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -631,29 +660,59 @@
         }
 
         async function uploadWamashipExcel(rows, fileName) {
+            if (!rows || rows.length === 0) {
+                alert("The uploaded file is empty or formatted incorrectly.");
+                document.getElementById('upload-processing').classList.add('hidden');
+                return;
+            }
+
+            // SMART COLUMN MAPPING AI
+            // Detect columns regardless of exact WamaShip header naming
+            const keys = Object.keys(rows[0] || {});
+            const getK = (regex) => keys.find(k => regex.test(k));
+            
+            let kAwb = getK(/awb|waybill|tracking|ref/i);
+            let kStatus = getK(/status|state/i);
+            let kEdd = getK(/edd|delivery|date/i);
+            let kOrder = getK(/order/i);
+            let kCust = getK(/customer|buyer|name|consignee/i);
+            let kCity = getK(/city|dest/i);
+            let kState = getK(/state|prov/i);
+            let kCourier = getK(/courier|partner|carrier/i);
+            let kLoc = getK(/location|hub/i);
+            let kAtt = getK(/attempt/i);
+            let kDispatch = getK(/dispatch|booking|pickup|created/i);
+
+            if (!kAwb) {
+                alert("Could not find an AWB/Tracking column in this file. Please check the Excel headers.");
+                document.getElementById('upload-processing').classList.add('hidden');
+                return;
+            }
+
             let newCount = 0, updateCount = 0;
             const now = new Date().toISOString();
             let newFollowupsToSync = [];
 
             rows.forEach(row => {
-                let awb = String(row['AWB Number'] || row['AWB'] || row['Waybill'] || '');
-                if(!awb) return;
+                let awb = String(row[kAwb] || '').trim();
+                if(!awb || awb === 'undefined' || awb === '') return;
 
-                let rawStatus = row['Status'] || row['Current Status'] || 'In Transit';
-                let rawEdd = row['EDD'] || row['Estimated Delivery Date'] || new Date().toISOString();
+                let rawStatus = kStatus ? (row[kStatus] || 'In Transit') : 'In Transit';
+                let rawEdd = kEdd ? parseExcelDate(row[kEdd]) : new Date().toISOString();
+                let rawDispatch = kDispatch ? parseExcelDate(row[kDispatch]) : new Date().toISOString();
                 
                 let shipmentObj = {
                     awb: awb,
-                    orderId: row['Order ID'] || row['Order'] || `ORD${Math.floor(Math.random()*10000)}`,
-                    customer: row['Customer Name'] || row['Customer'] || 'Unknown',
-                    city: row['Destination City'] || row['City'] || 'Unknown',
-                    state: row['Destination State'] || row['State'] || '',
-                    courier: row['Courier Partner'] || row['Courier'] || 'Delhivery',
+                    orderId: kOrder ? (row[kOrder] || `ORD${Math.floor(Math.random()*10000)}`) : `ORD${Math.floor(Math.random()*10000)}`,
+                    customer: kCust ? (row[kCust] || 'Unknown') : 'Unknown',
+                    city: kCity ? (row[kCity] || 'Unknown') : 'Unknown',
+                    state: kState ? (row[kState] || '') : '',
+                    courier: kCourier ? (row[kCourier] || 'WamaShip') : 'WamaShip',
                     status: rawStatus,
-                    location: row['Current Location'] || row['Location'] || 'Hub',
-                    edd: new Date(rawEdd).toISOString(),
-                    created: new Date().toISOString(),
-                    attempts: parseInt(row['Attempts']) || 0,
+                    location: kLoc ? (row[kLoc] || 'Hub') : 'Hub',
+                    edd: rawEdd,
+                    created: rawDispatch,
+                    attempts: kAtt ? (parseInt(row[kAtt]) || 0) : 0,
                     resolution: 'OPEN'
                 };
 
@@ -675,7 +734,7 @@
                     updateCount++;
 
                     if (oldPriority !== newPriority) {
-                        let f = { id: Date.now().toString()+Math.random(), date: now, awb: awb, oldStatus: oldPriority, newStatus: newPriority, comment: `System: Priority changed from ${oldPriority} to ${newPriority} via report upload.`, user: 'System' };
+                        let f = { id: crypto.randomUUID(), date: now, awb: awb, oldStatus: oldPriority, newStatus: newPriority, comment: `System: Priority changed from ${oldPriority} to ${newPriority} via report upload.`, user: 'System' };
                         db.followups.push(f);
                         newFollowupsToSync.push(Object.values(f));
                     }
@@ -684,11 +743,17 @@
                 else {
                     db.shipments.push(shipmentObj);
                     newCount++;
-                    let f = { id: Date.now().toString()+Math.random(), date: now, awb: awb, oldStatus: 'NEW', newStatus: newPriority, comment: `System: Shipment detected in network. Assigned ${newPriority}.`, user: 'System' };
+                    let f = { id: crypto.randomUUID(), date: now, awb: awb, oldStatus: 'NEW', newStatus: newPriority, comment: `System: Shipment detected in network. Assigned ${newPriority}.`, user: 'System' };
                     db.followups.push(f);
                     newFollowupsToSync.push(Object.values(f));
                 }
             });
+
+            if (newCount === 0 && updateCount === 0) {
+                alert("No valid shipments found in this file.");
+                document.getElementById('upload-processing').classList.add('hidden');
+                return;
+            }
 
             // Prepare Master Array for Google Sheets
             const masterValues = db.shipments.map(s => [
@@ -696,7 +761,13 @@
             ]);
 
             try {
-                // 1. Update Master Database (Overwrite from A2 to handle updates properly without erasing headers)
+                // 1. CLEAR Old Data to prevent ghost rows
+                await gapi.client.sheets.spreadsheets.values.clear({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: 'Shipment_Master!A2:M'
+                });
+
+                // 2. Update Master Database 
                 await gapi.client.sheets.spreadsheets.values.update({
                     spreadsheetId: SPREADSHEET_ID,
                     range: 'Shipment_Master!A2:M',
@@ -704,7 +775,7 @@
                     resource: { values: masterValues }
                 });
 
-                // 2. Append Followups
+                // 3. Append Followups
                 if(newFollowupsToSync.length > 0) {
                     await gapi.client.sheets.spreadsheets.values.append({
                         spreadsheetId: SPREADSHEET_ID,
@@ -715,7 +786,7 @@
                     });
                 }
 
-                // 3. Append Log
+                // 4. Append Log
                 let logRow = [now, fileName, rows.length, newCount, updateCount];
                 await gapi.client.sheets.spreadsheets.values.append({
                     spreadsheetId: SPREADSHEET_ID,
@@ -736,8 +807,14 @@
                 updateDashboardMetrics();
 
             } catch (err) {
+                if (err.status === 401 || (err.result && err.result.error && err.result.error.code === 401)) {
+                    pendingRetryAction = () => uploadWamashipExcel(rows, fileName);
+                    tokenClient.requestAccessToken({prompt: ''});
+                    return;
+                }
                 console.error(err);
-                alert("Failed to write to Google Sheets. Verify permissions.");
+                let msg = err.result && err.result.error ? err.result.error.message : err.message;
+                alert("Failed to write to Google Sheets. Verify permissions.\n\nDetails: " + msg);
                 document.getElementById('upload-processing').classList.add('hidden');
             }
         }
@@ -749,7 +826,7 @@
             
             if(!comment && resStatus === 'OPEN') return;
 
-            document.getElementById('saving-comment-overlay').classList.remove('hidden');
+            document.getElementById('saving-comment-overlay').style.display = 'flex';
 
             let s = db.shipments.find(x => x.awb === currentAwb);
             let finalComment = comment;
@@ -759,7 +836,7 @@
                 s.resolution = resStatus;
             }
 
-            let newFollowup = { id: Date.now().toString(), date: new Date().toISOString(), awb: currentAwb, oldStatus: s.priority, newStatus: s.priority, comment: finalComment, user: 'Operations Team' };
+            let newFollowup = { id: crypto.randomUUID(), date: new Date().toISOString(), awb: currentAwb, oldStatus: s.priority, newStatus: s.priority, comment: finalComment, user: 'Operations Team' };
             
             try {
                 // Append Comment to history sheet
@@ -771,10 +848,14 @@
                     resource: { values: [Object.values(newFollowup)] }
                 });
 
-                // Update resolution status in master (Lazy method: upload full master again)
+                // Clear & Update resolution status in master
                 const masterValues = db.shipments.map(sh => [
                     sh.priority, sh.awb, sh.orderId, sh.customer, sh.city, sh.state, sh.courier, sh.status, sh.location, sh.edd, sh.created, sh.attempts, sh.resolution
                 ]);
+                await gapi.client.sheets.spreadsheets.values.clear({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: 'Shipment_Master!A2:M'
+                });
                 await gapi.client.sheets.spreadsheets.values.update({
                     spreadsheetId: SPREADSHEET_ID,
                     range: 'Shipment_Master!A2:M',
@@ -789,11 +870,17 @@
                 
                 if(!document.getElementById('view-shipments').classList.contains('hidden')) { filterTable(); }
 
+                document.getElementById('saving-comment-overlay').style.display = 'none';
+
             } catch (err) {
+                if (err.status === 401 || (err.result && err.result.error && err.result.error.code === 401)) {
+                    pendingRetryAction = saveComment;
+                    tokenClient.requestAccessToken({prompt: ''});
+                    return;
+                }
                 console.error(err);
                 alert("Failed to save comment to cloud.");
-            } finally {
-                document.getElementById('saving-comment-overlay').classList.add('hidden');
+                document.getElementById('saving-comment-overlay').style.display = 'none';
             }
         }
 
