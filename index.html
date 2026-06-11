@@ -4,6 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gelixer Shipment Control Tower</title>
+    
+    <!-- Tailwind Configuration (Must be loaded BEFORE the Tailwind script) -->
+    <script>
+        window.tailwind = {
+            config: {
+                theme: {
+                    extend: {
+                        colors: {
+                            gelixer: { violet: '#6A4C9B', light: '#8A64C8', pale: '#F4F1F9', grey: '#5E5E5E', dark: '#4A356D' },
+                            priority: { critical: '#EF4444', today: '#F97316', watch: '#EAB308', delayed: '#6366F1', rto: '#78716C', normal: '#14B8A6', completed: '#22C55E' }
+                        },
+                        fontFamily: { sans: ['Inter', 'sans-serif'], },
+                        boxShadow: { 'soft': '0 10px 25px -5px rgba(106, 76, 155, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04)', }
+                    }
+                }
+            }
+        };
+    </script>
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Phosphor Icons -->
@@ -14,20 +33,6 @@
     <script src="https://accounts.google.com/gsi/client" async defer onload="gisLoaded()"></script>
     <script src="https://apis.google.com/js/api.js" async defer onload="gapiLoaded()"></script>
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        gelixer: { violet: '#6A4C9B', light: '#8A64C8', pale: '#F4F1F9', grey: '#5E5E5E', dark: '#4A356D' },
-                        priority: { critical: '#EF4444', today: '#F97316', watch: '#EAB308', delayed: '#6366F1', rto: '#78716C', normal: '#14B8A6', completed: '#22C55E' }
-                    },
-                    fontFamily: { sans: ['Inter', 'sans-serif'], },
-                    boxShadow: { 'soft': '0 10px 25px -5px rgba(106, 76, 155, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04)', }
-                }
-            }
-        }
-    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #F8F9FC; }
@@ -60,7 +65,7 @@
             <button onclick="connectGoogleSheets()" class="w-full bg-gray-900 hover:bg-black text-white py-3 px-6 rounded-xl font-medium transition-colors flex items-center justify-center shadow-lg">
                 <i class="ph ph-google-logo text-xl mr-3"></i> Sign in with Google
             </button>
-            <p id="auth-status" class="text-xs text-gelixer-violet font-medium mt-4 h-4"></p>
+            <p id="auth-status" class="text-xs text-gelixer-violet font-medium mt-4 h-4">Loading Google Services...</p>
         </div>
     </div>
 
@@ -231,7 +236,7 @@
                                     <p id="total-followups" class="text-2xl font-bold">0</p>
                                 </div>
                             </div>
-                            <button onclick="readShipmentMaster()" class="w-full mt-2 bg-white text-gelixer-violet hover:bg-gray-100 py-2.5 rounded-lg text-sm font-bold transition-colors flex justify-center items-center shadow-lg">
+                            <button onclick="setupAndReadDatabase()" class="w-full mt-2 bg-white text-gelixer-violet hover:bg-gray-100 py-2.5 rounded-lg text-sm font-bold transition-colors flex justify-center items-center shadow-lg">
                                 <i class="ph ph-arrows-clockwise mr-2"></i> Refresh from Cloud
                             </button>
                         </div>
@@ -416,7 +421,7 @@
     <script>
         // --- 1. Cloud Database Variables ---
         const CLIENT_ID = '729143146635-psjq2l2uh020cpdccbccrsm3jvmf2do0.apps.googleusercontent.com';
-        const SPREADSHEET_ID = '1nOO2q284MhV3OtKuoXjkrVId9jrGqSvfe__xGyx5W0Q';
+        const SPREADSHEET_ID = '1DvSVtSOoxoN1ziDdBcZxzVF6eeHgqXW5rwu_q66z8eQ'; // UPDATED ID
         const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
         const DISCOVERY_DOCS = ['https://sheets.googleapis.com/$discovery/rest?version=v4'];
         
@@ -443,11 +448,11 @@
                 scope: SCOPES,
                 callback: (tokenResponse) => {
                     if (tokenResponse.error !== undefined) {
-                        alert("Google Authentication Error: " + tokenResponse.error + "\n\nIf you are seeing an Origin error, please ensure your localhost URL is added to the 'Authorized JavaScript origins' in Google Cloud Console.");
+                        alert("Google Authentication Error: " + tokenResponse.error + "\n\nEnsure this domain is added to 'Authorized JavaScript origins' in Google Cloud Console.");
                         throw (tokenResponse);
                     }
                     document.getElementById('auth-overlay').style.display = 'none';
-                    readShipmentMaster(); // Fetch data once authenticated
+                    setupAndReadDatabase(); // Call the new Setup Engine upon login
                 },
             });
             gisInited = true;
@@ -461,14 +466,13 @@
         }
 
         function connectGoogleSheets() {
-            // Check if user is running via file:// protocol
             if (window.location.protocol === 'file:') {
-                alert("🚨 LOCALHOST ERROR:\n\nGoogle Login blocks the 'file://' protocol for security reasons. \n\nYou cannot just double-click the HTML file. You must run this using a local web server (e.g., VS Code Live Server, Python http.server, or XAMPP) so it runs on 'http://localhost'.");
+                alert("🚨 LOCALHOST ERROR:\n\nGoogle Login blocks the 'file://' protocol for security reasons. \n\nYou must run this using a local web server (e.g., VS Code Live Server).");
                 return;
             }
 
             if (!tokenClient) {
-                alert("Google Services are still loading or blocked. Please wait a second and try again.");
+                alert("Google Services are still loading or blocked by your browser. Please wait a second and try again.");
                 return;
             }
             if (gapi.client.getToken() === null) {
@@ -478,14 +482,81 @@
             }
         }
 
-        // --- 3. Google Sheets Read Operations ---
+        // --- 3. Database Auto-Setup & Read Engine ---
+        
+        // Auto-creates missing sheets and headers if the Google Sheet is empty
+        async function setupAndReadDatabase() {
+            const loadingUI = document.getElementById('table-loading');
+            const loadingText = loadingUI.querySelector('p');
+            
+            // Switch to Dashboard view and show loading
+            nav('dashboard');
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById('view-shipments').classList.remove('hidden');
+            document.getElementById('page-title').innerText = 'Syncing Cloud Database';
+            loadingUI.classList.remove('hidden');
+            document.getElementById('shipments-tbody').innerHTML = '';
+            document.getElementById('no-data-msg').classList.add('hidden');
+
+            loadingText.innerText = "Verifying cloud database structure...";
+
+            try {
+                // 1. Fetch current spreadsheet info to see which tabs exist
+                const spreadsheet = await gapi.client.sheets.spreadsheets.get({
+                    spreadsheetId: SPREADSHEET_ID
+                });
+                const existingSheets = spreadsheet.result.sheets.map(s => s.properties.title);
+
+                const requiredSheets = {
+                    'Shipment_Master': ['Priority', 'AWB Number', 'Order ID', 'Customer Info', 'City', 'State', 'Courier', 'Current Status', 'Location', 'EDD', 'Created Date', 'Attempts', 'Resolution'],
+                    'Followup_History': ['ID', 'Date', 'AWB Number', 'Old Status', 'New Status', 'Comment', 'User'],
+                    'Upload_Log': ['Date', 'File Name', 'Total Records', 'New Added', 'Existing Updated']
+                };
+
+                let missingSheets = [];
+                for (const sheetName in requiredSheets) {
+                    if (!existingSheets.includes(sheetName)) missingSheets.push(sheetName);
+                }
+
+                // 2. Create missing sheets and inject headers
+                if (missingSheets.length > 0) {
+                    loadingText.innerText = "Creating missing sheets in cloud database...";
+                    const requests = missingSheets.map(title => ({
+                        addSheet: { properties: { title: title } }
+                    }));
+
+                    await gapi.client.sheets.spreadsheets.batchUpdate({
+                        spreadsheetId: SPREADSHEET_ID,
+                        resource: { requests }
+                    });
+
+                    const headerData = missingSheets.map(title => ({
+                        range: `${title}!A1`,
+                        values: [requiredSheets[title]]
+                    }));
+
+                    await gapi.client.sheets.spreadsheets.values.batchUpdate({
+                        spreadsheetId: SPREADSHEET_ID,
+                        resource: {
+                            valueInputOption: 'USER_ENTERED',
+                            data: headerData
+                        }
+                    });
+                }
+
+                loadingText.innerText = "Fetching live data from Cloud...";
+                await readShipmentMaster();
+
+            } catch (err) {
+                loadingUI.classList.add('hidden');
+                console.error("Setup Error:", err);
+                alert("Error setting up or accessing database. Verify your Google Sheet permissions and ID.");
+                nav('dashboard');
+            }
+        }
+
         async function readShipmentMaster() {
             try {
-                // Show loading
-                document.getElementById('table-loading').classList.remove('hidden');
-                document.getElementById('shipments-tbody').innerHTML = '';
-                document.getElementById('no-data-msg').classList.add('hidden');
-
                 const response = await gapi.client.sheets.spreadsheets.values.batchGet({
                     spreadsheetId: SPREADSHEET_ID,
                     ranges: ['Shipment_Master!A2:M', 'Followup_History!A2:G', 'Upload_Log!A2:E']
@@ -524,16 +595,18 @@
 
                 document.getElementById('table-loading').classList.add('hidden');
                 updateDashboardMetrics();
-                filterTable();
+                
+                // Return to dashboard after successful sync
+                nav('dashboard');
             } catch (err) {
                 document.getElementById('table-loading').classList.add('hidden');
                 console.error(err);
-                alert("Error fetching from Google Sheets. Ensure the sheets are named correctly: 'Shipment_Master', 'Followup_History', 'Upload_Log'");
+                alert("Error fetching from Google Sheets. Ensure you have the correct permissions.");
             }
         }
 
 
-        // --- 4. Upload & Write Logic (uploadWamashipExcel) ---
+        // --- 4. Upload & Write Logic ---
         async function handleFileUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -623,7 +696,7 @@
             ]);
 
             try {
-                // 1. Update Master Database (Overwrite to handle updates properly)
+                // 1. Update Master Database (Overwrite from A2 to handle updates properly without erasing headers)
                 await gapi.client.sheets.spreadsheets.values.update({
                     spreadsheetId: SPREADSHEET_ID,
                     range: 'Shipment_Master!A2:M',
