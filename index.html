@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gelixer Shipment Control Tower</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- SheetJS for Excel Upload/Export -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <!-- Google Identity Services & API -->
+    <script src="https://accounts.google.com/gsi/client" async defer onload="gisLoaded()"></script>
+    <script src="https://apis.google.com/js/api.js" async defer onload="gapiLoaded()"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gelixer: { violet: '#6A4C9B', light: '#8A64C8', pale: '#F4F1F9', grey: '#5E5E5E', dark: '#4A356D' },
+                        priority: { critical: '#EF4444', today: '#F97316', watch: '#EAB308', delayed: '#6366F1', rto: '#78716C', normal: '#14B8A6', completed: '#22C55E' }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'], },
+                    boxShadow: { 'soft': '0 10px 25px -5px rgba(106, 76, 155, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04)', }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #F8F9FC; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #D1D5DB; }
+        .sidebar-item { transition: all 0.2s; border-left: 3px solid transparent; }
+        .sidebar-item.active { background-color: #F4F1F9; color: #6A4C9B; border-left-color: #6A4C9B; font-weight: 600; }
+        .timeline-line::before { content: ''; position: absolute; left: 11px; top: 24px; bottom: -24px; width: 2px; background-color: #E5E7EB; }
+        .timeline-item:last-child .timeline-line::before { display: none; }
+        
+        /* Dropdown CSS */
+        .export-dropdown:hover .dropdown-menu { display: block; }
+    </style>
+</head>
+<body class="text-gray-800 h-screen overflow-hidden flex relative">
+
+    <!-- ================= GOOGLE LOGIN OVERLAY ================= -->
+    <div id="auth-overlay" class="fixed inset-0 bg-gray-900/80 backdrop-blur-md z-[100] flex items-center justify-center">
+        <div class="bg-white rounded-3xl shadow-2xl p-10 max-w-md w-full text-center border-t-8 border-gelixer-violet relative overflow-hidden">
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-gelixer-violet opacity-5 rounded-full blur-2xl"></div>
+            <h1 class="text-3xl font-bold tracking-widest text-gelixer-violet mb-1">GELIXER<sup class="text-xs">&reg;</sup></h1>
+            <p class="text-xs font-semibold text-gelixer-grey uppercase tracking-wider mb-8">Shipment Control Tower</p>
+            
+            <i class="ph ph-cloud-check text-6xl text-gelixer-violet mb-6 block"></i>
+            <h2 class="text-xl font-bold text-gray-800 mb-2">Connect Cloud Database</h2>
+            <p class="text-sm text-gray-500 mb-8">Authenticate with Google Workspace to securely connect the live Master Database.</p>
+            
+            <button onclick="connectGoogleSheets()" class="w-full bg-gray-900 hover:bg-black text-white py-3 px-6 rounded-xl font-medium transition-colors flex items-center justify-center shadow-lg">
+                <i class="ph ph-google-logo text-xl mr-3"></i> Sign in with Google
+            </button>
+            <p id="auth-status" class="text-xs text-gelixer-violet font-medium mt-4 h-4"></p>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col justify-between hidden md:flex z-20 shadow-sm">
+        <div>
+            <div class="h-20 flex items-center px-6 border-b border-gray-100">
+                <div>
+                    <h1 class="text-xl font-bold tracking-widest text-gelixer-violet">GELIXER<sup class="text-xs">&reg;</sup></h1>
+                    <p class="text-[10px] font-semibold text-gelixer-grey uppercase tracking-wider">Control Tower</p>
+                </div>
+            </div>
+            <nav class="mt-6 flex flex-col space-y-1">
+                <button onclick="nav('dashboard')" id="nav-dashboard" class="sidebar-item active w-full flex items-center px-6 py-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gelixer-violet">
+                    <i class="ph ph-squares-four text-lg mr-3"></i> Dashboard Overview
+                </button>
+                <button onclick="nav('upload')" id="nav-upload" class="sidebar-item w-full flex items-center px-6 py-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gelixer-violet">
+                    <i class="ph ph-upload-simple text-lg mr-3"></i> Upload WamaShip
+                </button>
+                <div class="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-4">Shipment Views</div>
+                <button onclick="nav('shipments', 'CRITICAL')" id="nav-critical" class="sidebar-item w-full flex items-center px-6 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-priority-critical">
+                    <span class="w-2 h-2 rounded-full bg-priority-critical mr-3"></span> Critical Action
+                </button>
+                <button onclick="nav('shipments', 'DELIVER TODAY')" id="nav-today" class="sidebar-item w-full flex items-center px-6 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-priority-today">
+                    <span class="w-2 h-2 rounded-full bg-priority-today mr-3"></span> Deliver Today
+                </button>
+                <button onclick="nav('shipments', 'WATCH LIST')" id="nav-watch" class="sidebar-item w-full flex items-center px-6 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-priority-watch">
+                    <span class="w-2 h-2 rounded-full bg-priority-watch mr-3"></span> EDD Monitor
+                </button>
+                <button onclick="nav('shipments', 'RTO')" id="nav-rto" class="sidebar-item w-full flex items-center px-6 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-priority-rto">
+                    <span class="w-2 h-2 rounded-full bg-priority-rto mr-3"></span> RTO Tracking
+                </button>
+                <button onclick="nav('shipments', 'ALL')" id="nav-all" class="sidebar-item w-full flex items-center px-6 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-gelixer-violet">
+                    <i class="ph ph-list-dashes text-lg mr-3"></i> Master Database
+                </button>
+            </nav>
+        </div>
+        <div class="p-6 border-t border-gray-100">
+            <div class="flex items-center">
+                <div class="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold text-xs"><i class="ph ph-check"></i></div>
+                <div class="ml-3">
+                    <p class="text-xs font-semibold text-gray-800">Cloud Connected</p>
+                    <p class="text-[10px] text-gray-500">Google Sheets Sync</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative bg-[#F8F9FC]">
+        
+        <!-- Header -->
+        <header class="h-20 bg-white/80 backdrop-blur-md border-b border-gray-200 flex items-center justify-between px-8 z-10 shrink-0 shadow-sm">
+            <div class="flex items-center">
+                <h2 id="page-title" class="text-xl font-semibold text-gray-800">Dashboard Overview</h2>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="text-right hidden sm:block">
+                    <p id="current-date" class="text-sm font-semibold text-gelixer-violet"></p>
+                    <p id="current-time" class="text-xs text-gray-500"></p>
+                </div>
+                <button onclick="nav('upload')" class="bg-gelixer-violet hover:bg-gelixer-dark text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-md flex items-center">
+                    <i class="ph ph-upload-simple mr-2"></i> Upload Report
+                </button>
+            </div>
+        </header>
+
+        <!-- Scrollable Views -->
+        <div class="flex-1 overflow-y-auto p-4 sm:p-8 relative">
+            
+            <!-- ================= VIEW: DASHBOARD ================= -->
+            <div id="view-dashboard" class="view-section space-y-6">
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+                    <div class="bg-white p-5 rounded-2xl shadow-soft border border-gray-100 flex flex-col justify-between">
+                        <div class="flex justify-between items-start mb-4">
+                            <p class="text-sm font-medium text-gray-500">Active Shipments</p>
+                            <div class="p-2 bg-blue-50 text-blue-600 rounded-lg"><i class="ph ph-package text-xl"></i></div>
+                        </div>
+                        <div>
+                            <h3 id="dash-total" class="text-3xl font-bold text-gray-800">0</h3>
+                            <p class="text-xs text-gray-400 mt-1">Total in network</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-5 rounded-2xl shadow-soft border border-red-100 flex flex-col justify-between relative overflow-hidden cursor-pointer hover:bg-red-50 transition" onclick="nav('shipments','CRITICAL')">
+                        <div class="flex justify-between items-start mb-4 relative z-10">
+                            <p class="text-sm font-medium text-red-600">Critical Action</p>
+                            <div class="p-2 bg-red-100 text-red-600 rounded-lg"><i class="ph ph-warning-circle text-xl"></i></div>
+                        </div>
+                        <div class="relative z-10">
+                            <h3 id="dash-critical" class="text-3xl font-bold text-red-600">0</h3>
+                            <p class="text-xs text-red-400 mt-1">Requires immediate escalation</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl shadow-soft border border-orange-100 flex flex-col justify-between cursor-pointer hover:bg-orange-50 transition" onclick="nav('shipments','DELIVER TODAY')">
+                        <div class="flex justify-between items-start mb-4">
+                            <p class="text-sm font-medium text-orange-600">Deliver Today</p>
+                            <div class="p-2 bg-orange-100 text-orange-600 rounded-lg"><i class="ph ph-truck text-xl"></i></div>
+                        </div>
+                        <div>
+                            <h3 id="dash-today" class="text-3xl font-bold text-orange-600">0</h3>
+                            <p class="text-xs text-orange-400 mt-1">EDD is today</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl shadow-soft border border-gray-100 flex flex-col justify-between cursor-pointer hover:bg-gray-50 transition" onclick="nav('shipments','RTO')">
+                        <div class="flex justify-between items-start mb-4">
+                            <p class="text-sm font-medium text-gray-500">Active RTOs</p>
+                            <div class="p-2 bg-gray-100 text-gray-600 rounded-lg"><i class="ph ph-arrow-u-up-left text-xl"></i></div>
+                        </div>
+                        <div>
+                            <h3 id="dash-rto" class="text-3xl font-bold text-gray-800">0</h3>
+                            <p class="text-xs text-gray-400 mt-1">Returns in transit</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Breakdown -->
+                    <div class="bg-white p-6 rounded-2xl shadow-soft border border-gray-100 lg:col-span-2">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Shipment Priority Breakdown</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <div class="w-32 text-sm text-gray-600 flex items-center"><span class="w-3 h-3 rounded-full bg-priority-watch mr-2"></span>Watch List</div>
+                                <div class="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden mx-4">
+                                    <div id="bar-watch" class="h-full bg-priority-watch rounded-full" style="width: 0%"></div>
+                                </div>
+                                <div id="val-watch" class="w-8 text-right text-sm font-semibold">0</div>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-32 text-sm text-gray-600 flex items-center"><span class="w-3 h-3 rounded-full bg-priority-delayed mr-2"></span>Transit Delay</div>
+                                <div class="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden mx-4">
+                                    <div id="bar-delayed" class="h-full bg-priority-delayed rounded-full" style="width: 0%"></div>
+                                </div>
+                                <div id="val-delayed" class="w-8 text-right text-sm font-semibold">0</div>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-32 text-sm text-gray-600 flex items-center"><span class="w-3 h-3 rounded-full bg-priority-normal mr-2"></span>Normal Flow</div>
+                                <div class="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden mx-4">
+                                    <div id="bar-normal" class="h-full bg-priority-normal rounded-full" style="width: 0%"></div>
+                                </div>
+                                <div id="val-normal" class="w-8 text-right text-sm font-semibold">0</div>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-32 text-sm text-gray-600 flex items-center"><span class="w-3 h-3 rounded-full bg-priority-completed mr-2"></span>Completed</div>
+                                <div class="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden mx-4">
+                                    <div id="bar-completed" class="h-full bg-priority-completed rounded-full" style="width: 0%"></div>
+                                </div>
+                                <div id="val-completed" class="w-8 text-right text-sm font-semibold">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Upload Log Summary -->
+                    <div class="bg-gradient-to-br from-gelixer-violet to-gelixer-dark p-6 rounded-2xl shadow-soft text-white relative overflow-hidden">
+                        <i class="ph ph-database text-6xl absolute -bottom-4 -right-4 opacity-10"></i>
+                        <h3 class="text-lg font-semibold mb-4">Cloud Database Sync</h3>
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-xs text-gelixer-pale/80 uppercase tracking-wider">Total Records</p>
+                                    <p id="total-db-records" class="text-2xl font-bold">0</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gelixer-pale/80 uppercase tracking-wider">Follow-ups</p>
+                                    <p id="total-followups" class="text-2xl font-bold">0</p>
+                                </div>
+                            </div>
+                            <button onclick="readShipmentMaster()" class="w-full mt-2 bg-white text-gelixer-violet hover:bg-gray-100 py-2.5 rounded-lg text-sm font-bold transition-colors flex justify-center items-center shadow-lg">
+                                <i class="ph ph-arrows-clockwise mr-2"></i> Refresh from Cloud
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= VIEW: UPLOAD ================= -->
+            <div id="view-upload" class="view-section hidden max-w-3xl mx-auto mt-8">
+                <div class="bg-white p-8 rounded-3xl shadow-soft border border-gray-100 text-center">
+                    <div class="w-20 h-20 mx-auto bg-purple-50 rounded-full flex items-center justify-center mb-6">
+                        <i class="ph ph-file-xls text-4xl text-gelixer-violet"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Upload WamaShip Report</h2>
+                    <p class="text-sm text-gray-500 mb-8 max-w-md mx-auto">Upload the daily Excel or CSV export from WamaShip. The system will detect duplicates, merge new comments, calculate priorities, and save directly to Google Sheets.</p>
+                    
+                    <div class="border-2 border-dashed border-gray-300 rounded-2xl p-10 hover:bg-gray-50 hover:border-gelixer-violet transition-colors relative">
+                        <input type="file" id="file-upload" accept=".xlsx, .xls, .csv" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleFileUpload(event)">
+                        <i class="ph ph-upload-simple text-3xl text-gray-400 mb-3"></i>
+                        <p class="text-sm font-medium text-gray-700">Click to browse or drag and drop</p>
+                        <p class="text-xs text-gray-400 mt-1">.XLSX or .CSV format</p>
+                    </div>
+
+                    <div id="upload-processing" class="hidden mt-8">
+                        <div class="w-8 h-8 border-4 border-gelixer-pale border-t-gelixer-violet rounded-full animate-spin mx-auto mb-3"></div>
+                        <p class="text-sm font-medium text-gelixer-violet">Parsing data & synchronizing with Google Sheets...</p>
+                    </div>
+
+                    <div id="upload-success" class="hidden mt-8 bg-green-50 border border-green-200 rounded-xl p-5 text-left">
+                        <div class="flex items-center mb-3">
+                            <i class="ph ph-check-circle text-2xl text-green-600 mr-2"></i>
+                            <h3 class="text-lg font-bold text-green-800">Cloud Sync Complete</h3>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 text-sm mt-4">
+                            <div class="bg-white p-3 rounded-lg border border-green-100">
+                                <p class="text-gray-500 text-xs">Rows Processed</p>
+                                <p id="up-total" class="text-lg font-bold text-gray-800">0</p>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg border border-green-100">
+                                <p class="text-gray-500 text-xs">New Added</p>
+                                <p id="up-new" class="text-lg font-bold text-green-600">0</p>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg border border-green-100">
+                                <p class="text-gray-500 text-xs">Existing Updated</p>
+                                <p id="up-updated" class="text-lg font-bold text-blue-600">0</p>
+                            </div>
+                        </div>
+                        <button onclick="nav('dashboard')" class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-medium transition-colors">Go to Dashboard</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= VIEW: SHIPMENTS TABLE ================= -->
+            <div id="view-shipments" class="view-section hidden h-full flex flex-col">
+                <div class="bg-white p-4 rounded-t-2xl border border-gray-200 flex flex-wrap gap-4 justify-between items-center z-10 shadow-sm relative">
+                    <div class="flex items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 w-full md:w-80 focus-within:border-gelixer-violet focus-within:ring-1 focus-within:ring-gelixer-violet transition-all">
+                        <i class="ph ph-magnifying-glass text-gray-400 mr-2"></i>
+                        <input type="text" id="search-input" placeholder="Search AWB, Order ID, Customer..." class="bg-transparent border-none outline-none text-sm w-full" onkeyup="filterTable()">
+                    </div>
+                    <div class="flex gap-3 flex-wrap">
+                        <select id="filter-courier" class="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gelixer-violet" onchange="filterTable()">
+                            <option value="">All Couriers</option>
+                            <option value="Delhivery">Delhivery</option>
+                            <option value="Bluedart">Bluedart</option>
+                            <option value="Ecom Express">Ecom Express</option>
+                            <option value="XpressBees">XpressBees</option>
+                        </select>
+                        <select id="filter-status" class="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gelixer-violet" onchange="filterTable()">
+                            <option value="">All Statuses</option>
+                            <option value="In Transit">In Transit</option>
+                            <option value="Out for Delivery">Out for Delivery</option>
+                            <option value="Undelivered">Undelivered</option>
+                            <option value="RTO Initiated">RTO Initiated</option>
+                            <option value="Delivered">Delivered</option>
+                        </select>
+                        
+                        <!-- Custom Export Dropdown -->
+                        <div class="relative export-dropdown">
+                            <button class="bg-gray-900 hover:bg-black text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center shadow-sm">
+                                <i class="ph ph-download-simple mr-2"></i> Export Data <i class="ph ph-caret-down ml-2"></i>
+                            </button>
+                            <div class="dropdown-menu absolute right-0 mt-1 w-56 bg-white border border-gray-200 rounded-xl shadow-xl hidden z-50 overflow-hidden">
+                                <button onclick="exportData('CRITICAL')" class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 flex items-center border-b border-gray-100"><i class="ph ph-warning-circle mr-2 text-red-500"></i> Export Critical Shipments</button>
+                                <button onclick="exportData('DELIVER TODAY')" class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 flex items-center border-b border-gray-100"><i class="ph ph-truck mr-2 text-orange-500"></i> Export Today's Delivery</button>
+                                <button onclick="exportData('RTO')" class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 flex items-center border-b border-gray-100"><i class="ph ph-arrow-u-up-left mr-2"></i> Export RTO Cases</button>
+                                <button onclick="exportData('CURRENT_VIEW')" class="w-full text-left px-4 py-3 text-sm text-gelixer-violet hover:bg-purple-50 font-semibold flex items-center"><i class="ph ph-table mr-2"></i> Export Filtered View</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white border-x border-b border-gray-200 rounded-b-2xl flex-1 overflow-auto shadow-sm">
+                    <table class="w-full text-left border-collapse whitespace-nowrap min-w-[1000px]">
+                        <thead class="bg-gray-50 sticky top-0 z-10 shadow-sm border-b border-gray-200">
+                            <tr>
+                                <th class="py-3 px-4 font-semibold text-xs text-gray-500 uppercase tracking-wider">Priority</th>
+                                <th class="py-3 px-4 font-semibold text-xs text-gray-500 uppercase tracking-wider">AWB Number</th>
+                                <th class="py-3 px-4 font-semibold text-xs text-gray-500 uppercase tracking-wider">Customer Info</th>
+                                <th class="py-3 px-4 font-semibold text-xs text-gray-500 uppercase tracking-wider">Courier</th>
+                                <th class="py-3 px-4 font-semibold text-xs text-gray-500 uppercase tracking-wider">Current Status</th>
+                                <th class="py-3 px-4 font-semibold text-xs text-gray-500 uppercase tracking-wider">EDD</th>
+                                <th class="py-3 px-4 font-semibold text-xs text-gray-500 uppercase tracking-wider text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="shipments-tbody" class="divide-y divide-gray-100 text-sm">
+                            <!-- JS will populate rows -->
+                        </tbody>
+                    </table>
+                    
+                    <div id="table-loading" class="hidden p-12 text-center">
+                        <div class="w-8 h-8 border-4 border-gelixer-pale border-t-gelixer-violet rounded-full animate-spin mx-auto mb-3"></div>
+                        <p class="text-sm text-gelixer-violet font-medium">Fetching live data from Cloud...</p>
+                    </div>
+
+                    <div id="no-data-msg" class="hidden p-10 text-center text-gray-500">
+                        <i class="ph ph-magnifying-glass text-4xl mb-3 text-gray-300"></i>
+                        <p>No shipments found matching criteria.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ================= MODAL: SHIPMENT COMMAND PANEL ================= -->
+    <div id="panel-overlay" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 hidden" onclick="closePanel()"></div>
+    <div id="panel" class="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
+        <!-- Panel Header -->
+        <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <div>
+                <span id="pnl-priority-badge" class="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase mb-2 inline-block bg-red-100 text-red-700">CRITICAL</span>
+                <h3 id="pnl-awb" class="text-xl font-bold text-gray-800 tracking-wide">AWB123456</h3>
+                <p id="pnl-order" class="text-xs text-gray-500">Order: GLX-987</p>
+            </div>
+            <button onclick="closePanel()" class="text-gray-400 hover:text-gray-800 bg-white rounded-full p-2 shadow-sm border border-gray-100">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Panel Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-6 bg-white">
+            <div class="grid grid-cols-2 gap-y-4 gap-x-2 mb-8">
+                <div><p class="text-[10px] uppercase text-gray-400 font-semibold">Customer</p><p id="pnl-customer" class="text-sm font-medium text-gray-800">John Doe</p></div>
+                <div><p class="text-[10px] uppercase text-gray-400 font-semibold">Destination</p><p id="pnl-dest" class="text-sm font-medium text-gray-800">Mumbai, MH</p></div>
+                <div><p class="text-[10px] uppercase text-gray-400 font-semibold">Courier</p><p id="pnl-courier" class="text-sm font-medium text-gray-800">Delhivery</p></div>
+                <div><p class="text-[10px] uppercase text-gray-400 font-semibold">EDD</p><p id="pnl-edd" class="text-sm font-medium text-gray-800">12 Jun 2026</p></div>
+                <div class="col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                    <p class="text-[10px] uppercase text-gray-400 font-semibold mb-1">Latest Tracking Update</p>
+                    <p id="pnl-status" class="text-sm font-bold text-gelixer-violet">Undelivered - Customer Not Available</p>
+                    <p id="pnl-location" class="text-xs text-gray-500 mt-1">Last location: Mumbai Hub</p>
+                </div>
+            </div>
+
+            <!-- Followup Timeline -->
+            <h4 class="text-sm font-bold text-gray-800 mb-4 border-b border-gray-100 pb-2 flex items-center">
+                <i class="ph ph-clock-counter-clockwise mr-2 text-gelixer-violet"></i> Followup History
+            </h4>
+            <div id="pnl-timeline" class="space-y-4 pl-2"></div>
+        </div>
+
+        <!-- Add Comment Form -->
+        <div class="p-6 border-t border-gray-200 bg-gray-50 relative">
+            <div id="saving-comment-overlay" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 hidden flex items-center justify-center">
+                <div class="w-6 h-6 border-2 border-gelixer-pale border-t-gelixer-violet rounded-full animate-spin"></div>
+            </div>
+            <textarea id="pnl-new-comment" rows="2" placeholder="Add an operational comment or escalation note..." class="w-full text-sm border border-gray-300 rounded-lg p-3 outline-none focus:border-gelixer-violet focus:ring-1 focus:ring-gelixer-violet mb-3 resize-none"></textarea>
+            <div class="flex justify-between items-center">
+                <select id="pnl-resolve-status" class="text-xs border border-gray-300 rounded-lg p-2 outline-none">
+                    <option value="OPEN">Keep Open</option>
+                    <option value="ESCALATED">Mark Escalated</option>
+                    <option value="RESOLVED">Mark Resolved</option>
+                </select>
+                <button onclick="saveComment()" class="bg-gelixer-violet hover:bg-gelixer-dark text-white px-5 py-2 rounded-lg text-sm font-medium shadow-md transition-colors flex items-center">
+                    Post to Cloud
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================= JAVASCRIPT APP LOGIC ================= -->
+    <script>
+        // --- 1. Cloud Database Variables ---
+        const CLIENT_ID = '729143146635-psjq2l2uh020cpdccbccrsm3jvmf2do0.apps.googleusercontent.com';
+        const SPREADSHEET_ID = '1nOO2q284MhV3OtKuoXjkrVId9jrGqSvfe__xGyx5W0Q';
+        const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
+        const DISCOVERY_DOCS = ['https://sheets.googleapis.com/$discovery/rest?version=v4'];
+        
+        let tokenClient;
+        let gapiInited = false;
+        let gisInited = false;
+
+        let db = { shipments: [], followups: [], logs: [] };
+
+        // --- 2. Google OAuth & API Initialization ---
+        function gapiLoaded() {
+            gapi.load('client', initializeGapiClient);
+        }
+
+        async function initializeGapiClient() {
+            await gapi.client.init({ discoveryDocs: DISCOVERY_DOCS });
+            gapiInited = true;
+            checkAuthInitialization();
+        }
+
+        function gisLoaded() {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPES,
+                callback: (tokenResponse) => {
+                    if (tokenResponse.error !== undefined) {
+                        alert("Google Authentication Error: " + tokenResponse.error + "\n\nIf you are seeing an Origin error, please ensure your localhost URL is added to the 'Authorized JavaScript origins' in Google Cloud Console.");
+                        throw (tokenResponse);
+                    }
+                    document.getElementById('auth-overlay').style.display = 'none';
+                    readShipmentMaster(); // Fetch data once authenticated
+                },
+            });
+            gisInited = true;
+            checkAuthInitialization();
+        }
+
+        function checkAuthInitialization() {
+            if (gapiInited && gisInited) {
+                document.getElementById('auth-status').innerText = "Ready to connect.";
+            }
+        }
+
+        function connectGoogleSheets() {
+            // Check if user is running via file:// protocol
+            if (window.location.protocol === 'file:') {
+                alert("🚨 LOCALHOST ERROR:\n\nGoogle Login blocks the 'file://' protocol for security reasons. \n\nYou cannot just double-click the HTML file. You must run this using a local web server (e.g., VS Code Live Server, Python http.server, or XAMPP) so it runs on 'http://localhost'.");
+                return;
+            }
+
+            if (!tokenClient) {
+                alert("Google Services are still loading or blocked. Please wait a second and try again.");
+                return;
+            }
+            if (gapi.client.getToken() === null) {
+                tokenClient.requestAccessToken({prompt: 'consent'});
+            } else {
+                tokenClient.requestAccessToken({prompt: ''});
+            }
+        }
+
+        // --- 3. Google Sheets Read Operations ---
+        async function readShipmentMaster() {
+            try {
+                // Show loading
+                document.getElementById('table-loading').classList.remove('hidden');
+                document.getElementById('shipments-tbody').innerHTML = '';
+                document.getElementById('no-data-msg').classList.add('hidden');
+
+                const response = await gapi.client.sheets.spreadsheets.values.batchGet({
+                    spreadsheetId: SPREADSHEET_ID,
+                    ranges: ['Shipment_Master!A2:M', 'Followup_History!A2:G', 'Upload_Log!A2:E']
+                });
+                
+                const masterData = response.result.valueRanges[0].values || [];
+                const followData = response.result.valueRanges[1].values || [];
+                const logData = response.result.valueRanges[2].values || [];
+
+                // Map Master
+                db.shipments = masterData.map(row => ({
+                    priority: row[0] || 'NORMAL',
+                    awb: row[1] || '',
+                    orderId: row[2] || '',
+                    customer: row[3] || '',
+                    city: row[4] || '',
+                    state: row[5] || '',
+                    courier: row[6] || '',
+                    status: row[7] || '',
+                    location: row[8] || '',
+                    edd: row[9] || '',
+                    created: row[10] || '',
+                    attempts: parseInt(row[11]) || 0,
+                    resolution: row[12] || 'OPEN'
+                })).filter(s => s.awb !== '');
+
+                // Map Followups
+                db.followups = followData.map(row => ({
+                    id: row[0], date: row[1], awb: row[2], oldStatus: row[3], newStatus: row[4], comment: row[5], user: row[6]
+                }));
+
+                // Map Logs
+                db.logs = logData.map(row => ({
+                    date: row[0], fileName: row[1], total: row[2], new: row[3], updated: row[4]
+                }));
+
+                document.getElementById('table-loading').classList.add('hidden');
+                updateDashboardMetrics();
+                filterTable();
+            } catch (err) {
+                document.getElementById('table-loading').classList.add('hidden');
+                console.error(err);
+                alert("Error fetching from Google Sheets. Ensure the sheets are named correctly: 'Shipment_Master', 'Followup_History', 'Upload_Log'");
+            }
+        }
+
+
+        // --- 4. Upload & Write Logic (uploadWamashipExcel) ---
+        async function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            document.getElementById('upload-processing').classList.remove('hidden');
+            document.getElementById('upload-success').classList.add('hidden');
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const data = evt.target.result;
+                const workbook = XLSX.read(data, {type: 'binary'});
+                const firstSheet = workbook.SheetNames[0];
+                const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
+                
+                uploadWamashipExcel(rawData, file.name);
+            };
+            reader.readAsBinaryString(file);
+        }
+
+        function checkDuplicateAWB(awb) {
+            return db.shipments.findIndex(s => s.awb === awb);
+        }
+
+        async function uploadWamashipExcel(rows, fileName) {
+            let newCount = 0, updateCount = 0;
+            const now = new Date().toISOString();
+            let newFollowupsToSync = [];
+
+            rows.forEach(row => {
+                let awb = String(row['AWB Number'] || row['AWB'] || row['Waybill'] || '');
+                if(!awb) return;
+
+                let rawStatus = row['Status'] || row['Current Status'] || 'In Transit';
+                let rawEdd = row['EDD'] || row['Estimated Delivery Date'] || new Date().toISOString();
+                
+                let shipmentObj = {
+                    awb: awb,
+                    orderId: row['Order ID'] || row['Order'] || `ORD${Math.floor(Math.random()*10000)}`,
+                    customer: row['Customer Name'] || row['Customer'] || 'Unknown',
+                    city: row['Destination City'] || row['City'] || 'Unknown',
+                    state: row['Destination State'] || row['State'] || '',
+                    courier: row['Courier Partner'] || row['Courier'] || 'Delhivery',
+                    status: rawStatus,
+                    location: row['Current Location'] || row['Location'] || 'Hub',
+                    edd: new Date(rawEdd).toISOString(),
+                    created: new Date().toISOString(),
+                    attempts: parseInt(row['Attempts']) || 0,
+                    resolution: 'OPEN'
+                };
+
+                let newPriority = calculatePriority(shipmentObj);
+                shipmentObj.priority = newPriority;
+
+                let existingIndex = checkDuplicateAWB(awb);
+
+                // If AWB exists: Update Fields, DON'T DELETE history/comments
+                if (existingIndex > -1) {
+                    let old = db.shipments[existingIndex];
+                    let oldPriority = old.priority;
+                    
+                    // PRESERVE internal fields
+                    shipmentObj.created = old.created;
+                    shipmentObj.resolution = old.resolution;
+                    
+                    db.shipments[existingIndex] = shipmentObj;
+                    updateCount++;
+
+                    if (oldPriority !== newPriority) {
+                        let f = { id: Date.now().toString()+Math.random(), date: now, awb: awb, oldStatus: oldPriority, newStatus: newPriority, comment: `System: Priority changed from ${oldPriority} to ${newPriority} via report upload.`, user: 'System' };
+                        db.followups.push(f);
+                        newFollowupsToSync.push(Object.values(f));
+                    }
+                } 
+                // If AWB is new: Insert
+                else {
+                    db.shipments.push(shipmentObj);
+                    newCount++;
+                    let f = { id: Date.now().toString()+Math.random(), date: now, awb: awb, oldStatus: 'NEW', newStatus: newPriority, comment: `System: Shipment detected in network. Assigned ${newPriority}.`, user: 'System' };
+                    db.followups.push(f);
+                    newFollowupsToSync.push(Object.values(f));
+                }
+            });
+
+            // Prepare Master Array for Google Sheets
+            const masterValues = db.shipments.map(s => [
+                s.priority, s.awb, s.orderId, s.customer, s.city, s.state, s.courier, s.status, s.location, s.edd, s.created, s.attempts, s.resolution
+            ]);
+
+            try {
+                // 1. Update Master Database (Overwrite to handle updates properly)
+                await gapi.client.sheets.spreadsheets.values.update({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: 'Shipment_Master!A2:M',
+                    valueInputOption: 'USER_ENTERED',
+                    resource: { values: masterValues }
+                });
+
+                // 2. Append Followups
+                if(newFollowupsToSync.length > 0) {
+                    await gapi.client.sheets.spreadsheets.values.append({
+                        spreadsheetId: SPREADSHEET_ID,
+                        range: 'Followup_History!A:G',
+                        valueInputOption: 'USER_ENTERED',
+                        insertDataOption: 'INSERT_ROWS',
+                        resource: { values: newFollowupsToSync }
+                    });
+                }
+
+                // 3. Append Log
+                let logRow = [now, fileName, rows.length, newCount, updateCount];
+                await gapi.client.sheets.spreadsheets.values.append({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: 'Upload_Log!A:E',
+                    valueInputOption: 'USER_ENTERED',
+                    insertDataOption: 'INSERT_ROWS',
+                    resource: { values: [logRow] }
+                });
+
+                // Refresh UI
+                document.getElementById('upload-processing').classList.add('hidden');
+                document.getElementById('upload-success').classList.remove('hidden');
+                document.getElementById('up-total').innerText = rows.length;
+                document.getElementById('up-new').innerText = newCount;
+                document.getElementById('up-updated').innerText = updateCount;
+                document.getElementById('file-upload').value = '';
+                
+                updateDashboardMetrics();
+
+            } catch (err) {
+                console.error(err);
+                alert("Failed to write to Google Sheets. Verify permissions.");
+                document.getElementById('upload-processing').classList.add('hidden');
+            }
+        }
+
+        // --- 5. Save Single Comment to Cloud ---
+        async function saveComment() {
+            const comment = document.getElementById('pnl-new-comment').value.trim();
+            const resStatus = document.getElementById('pnl-resolve-status').value;
+            
+            if(!comment && resStatus === 'OPEN') return;
+
+            document.getElementById('saving-comment-overlay').classList.remove('hidden');
+
+            let s = db.shipments.find(x => x.awb === currentAwb);
+            let finalComment = comment;
+            
+            if(s.resolution !== resStatus) {
+                finalComment = `[Status changed to ${resStatus}] ` + finalComment;
+                s.resolution = resStatus;
+            }
+
+            let newFollowup = { id: Date.now().toString(), date: new Date().toISOString(), awb: currentAwb, oldStatus: s.priority, newStatus: s.priority, comment: finalComment, user: 'Operations Team' };
+            
+            try {
+                // Append Comment to history sheet
+                await gapi.client.sheets.spreadsheets.values.append({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: 'Followup_History!A:G',
+                    valueInputOption: 'USER_ENTERED',
+                    insertDataOption: 'INSERT_ROWS',
+                    resource: { values: [Object.values(newFollowup)] }
+                });
+
+                // Update resolution status in master (Lazy method: upload full master again)
+                const masterValues = db.shipments.map(sh => [
+                    sh.priority, sh.awb, sh.orderId, sh.customer, sh.city, sh.state, sh.courier, sh.status, sh.location, sh.edd, sh.created, sh.attempts, sh.resolution
+                ]);
+                await gapi.client.sheets.spreadsheets.values.update({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: 'Shipment_Master!A2:M',
+                    valueInputOption: 'USER_ENTERED',
+                    resource: { values: masterValues }
+                });
+
+                // Update Local state
+                db.followups.push(newFollowup);
+                renderTimeline();
+                document.getElementById('pnl-new-comment').value = '';
+                
+                if(!document.getElementById('view-shipments').classList.contains('hidden')) { filterTable(); }
+
+            } catch (err) {
+                console.error(err);
+                alert("Failed to save comment to cloud.");
+            } finally {
+                document.getElementById('saving-comment-overlay').classList.add('hidden');
+            }
+        }
+
+        // --- 6. Export Functions ---
+        function exportData(exportType) {
+            let dataToExport = [];
+            let fileName = "";
+
+            if(exportType === 'CURRENT_VIEW') {
+                if(currentTableData.length === 0) return alert("No data in current view.");
+                dataToExport = currentTableData;
+                fileName = `Gelixer_Filtered_View_${new Date().getTime()}.xlsx`;
+            } else {
+                dataToExport = db.shipments.filter(s => s.priority === exportType);
+                if(dataToExport.length === 0) return alert(`No ${exportType} shipments to export.`);
+                fileName = `Gelixer_${exportType}_Shipments.xlsx`;
+            }
+
+            const formattedData = dataToExport.map(s => ({
+                'Priority': s.priority,
+                'AWB Number': s.awb,
+                'Order ID': s.orderId,
+                'Customer': s.customer,
+                'City': s.city,
+                'Courier': s.courier,
+                'Status': s.status,
+                'EDD': new Date(s.edd).toLocaleDateString(),
+                'Resolution': s.resolution
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(formattedData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Export");
+            XLSX.writeFile(wb, fileName);
+        }
+
+        // --- Core Helpers (Priority, Nav, Timelines) ---
+        function calculatePriority(shipment) {
+            if (shipment.status === 'Delivered' || shipment.status === 'Delivered successfully') return 'COMPLETED';
+            if (shipment.status.includes('RTO') || shipment.status.includes('Return')) return 'RTO';
+            const today = new Date(); today.setHours(0,0,0,0);
+            let edd = new Date(shipment.edd); let isEddValid = !isNaN(edd.getTime());
+            
+            if (isEddValid && edd < today && shipment.status !== 'Delivered') return 'CRITICAL';
+            if (shipment.attempts >= 2) return 'CRITICAL';
+            if (isEddValid && edd.getTime() === today.getTime()) return 'DELIVER TODAY';
+            
+            let tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+            if (isEddValid && edd.getTime() === tomorrow.getTime()) return 'WATCH LIST';
+
+            let diffDays = Math.ceil(Math.abs(today - new Date(shipment.created)) / (1000 * 60 * 60 * 24));
+            if (diffDays > 5) return 'TRANSIT DELAYED';
+            return 'NORMAL';
+        }
+
+        const priorityConfig = {
+            'CRITICAL': { color: 'bg-red-100 text-red-700' },
+            'DELIVER TODAY': { color: 'bg-orange-100 text-orange-700' },
+            'WATCH LIST': { color: 'bg-yellow-100 text-yellow-700' },
+            'TRANSIT DELAYED': { color: 'bg-indigo-100 text-indigo-700' },
+            'RTO': { color: 'bg-stone-100 text-stone-700' },
+            'NORMAL': { color: 'bg-teal-100 text-teal-700' },
+            'COMPLETED': { color: 'bg-green-100 text-green-700' },
+        };
+
+        let currentFilterPriority = 'ALL';
+        function nav(viewId, priority = 'ALL') {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            
+            if(viewId === 'dashboard') {
+                document.getElementById('view-dashboard').classList.remove('hidden');
+                document.getElementById('nav-dashboard').classList.add('active');
+                document.getElementById('page-title').innerText = 'Dashboard Overview';
+                updateDashboardMetrics();
+            } else if(viewId === 'upload') {
+                document.getElementById('view-upload').classList.remove('hidden');
+                document.getElementById('nav-upload').classList.add('active');
+                document.getElementById('page-title').innerText = 'Upload Report';
+            } else if(viewId === 'shipments') {
+                document.getElementById('view-shipments').classList.remove('hidden');
+                currentFilterPriority = priority;
+                
+                let title = "Master Database";
+                if(priority === 'CRITICAL') { title = "Critical Action Required"; document.getElementById('nav-critical').classList.add('active'); }
+                else if(priority === 'DELIVER TODAY') { title = "Deliver Today"; document.getElementById('nav-today').classList.add('active'); }
+                else if(priority === 'WATCH LIST') { title = "EDD Monitor (Watch List)"; document.getElementById('nav-watch').classList.add('active'); }
+                else if(priority === 'RTO') { title = "RTO Tracking"; document.getElementById('nav-rto').classList.add('active'); }
+                else { document.getElementById('nav-all').classList.add('active'); }
+                
+                document.getElementById('page-title').innerText = title;
+                filterTable();
+            }
+        }
+
+        function updateDashboardMetrics() {
+            let counts = { critical: 0, today: 0, rto: 0, watch: 0, delayed: 0, normal: 0, completed: 0 };
+            db.shipments.forEach(s => {
+                if(s.priority === 'CRITICAL') counts.critical++;
+                else if(s.priority === 'DELIVER TODAY') counts.today++;
+                else if(s.priority === 'RTO') counts.rto++;
+                else if(s.priority === 'WATCH LIST') counts.watch++;
+                else if(s.priority === 'TRANSIT DELAYED') counts.delayed++;
+                else if(s.priority === 'NORMAL') counts.normal++;
+                else if(s.priority === 'COMPLETED') counts.completed++;
+            });
+
+            let active = counts.critical + counts.today + counts.rto + counts.watch + counts.delayed + counts.normal;
+            
+            document.getElementById('dash-total').innerText = active;
+            document.getElementById('dash-critical').innerText = counts.critical;
+            document.getElementById('dash-today').innerText = counts.today;
+            document.getElementById('dash-rto').innerText = counts.rto;
+
+            const totalBar = active + counts.completed || 1;
+            document.getElementById('val-watch').innerText = counts.watch;
+            document.getElementById('bar-watch').style.width = `${(counts.watch/totalBar)*100}%`;
+            document.getElementById('val-delayed').innerText = counts.delayed;
+            document.getElementById('bar-delayed').style.width = `${(counts.delayed/totalBar)*100}%`;
+            document.getElementById('val-normal').innerText = counts.normal;
+            document.getElementById('bar-normal').style.width = `${(counts.normal/totalBar)*100}%`;
+            document.getElementById('val-completed').innerText = counts.completed;
+            document.getElementById('bar-completed').style.width = `${(counts.completed/totalBar)*100}%`;
+
+            document.getElementById('total-db-records').innerText = db.shipments.length;
+            document.getElementById('total-followups').innerText = db.followups.length;
+            if(db.logs.length > 0) { document.getElementById('last-upload-date').innerText = new Date(db.logs[db.logs.length-1].date).toLocaleString(); }
+        }
+
+        let currentTableData = [];
+        function filterTable() {
+            const search = document.getElementById('search-input').value.toLowerCase();
+            const courier = document.getElementById('filter-courier').value;
+            const status = document.getElementById('filter-status').value;
+
+            currentTableData = db.shipments.filter(s => {
+                let matchPriority = currentFilterPriority === 'ALL' ? true : s.priority === currentFilterPriority;
+                let matchSearch = s.awb.toLowerCase().includes(search) || s.orderId.toLowerCase().includes(search) || s.customer.toLowerCase().includes(search);
+                let matchCourier = courier === '' ? true : s.courier === courier;
+                let matchStatus = status === '' ? true : s.status.includes(status);
+                return matchPriority && matchSearch && matchCourier && matchStatus;
+            });
+
+            currentTableData.sort((a,b) => new Date(a.edd) - new Date(b.edd));
+            
+            const tbody = document.getElementById('shipments-tbody');
+            const noData = document.getElementById('no-data-msg');
+            tbody.innerHTML = '';
+
+            if(currentTableData.length === 0) {
+                noData.classList.remove('hidden');
+            } else {
+                noData.classList.add('hidden');
+                currentTableData.forEach(s => {
+                    const cfg = priorityConfig[s.priority];
+                    let tr = document.createElement('tr');
+                    tr.className = "hover:bg-gray-50/50 cursor-pointer transition-colors";
+                    tr.onclick = () => openPanel(s.awb);
+                    
+                    let eddStr = new Date(s.edd).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'});
+
+                    tr.innerHTML = `
+                        <td class="py-4 px-4"><span class="px-2 py-1 rounded text-[10px] font-bold tracking-wide uppercase ${cfg.color}">${s.priority}</span></td>
+                        <td class="py-4 px-4 font-medium text-gelixer-violet">${s.awb}<br><span class="text-xs text-gray-400 font-normal">${s.orderId}</span></td>
+                        <td class="py-4 px-4 text-gray-800">${s.customer}<br><span class="text-xs text-gray-500">${s.city}, ${s.state}</span></td>
+                        <td class="py-4 px-4 text-gray-600">${s.courier}</td>
+                        <td class="py-4 px-4 text-gray-800 text-xs whitespace-normal max-w-[200px] truncate" title="${s.status}">${s.status}<br><span class="text-[10px] text-gray-400">${s.location}</span></td>
+                        <td class="py-4 px-4 text-gray-600 font-medium">${eddStr}</td>
+                        <td class="py-4 px-4 text-right"><button class="text-gray-400 hover:text-gelixer-violet"><i class="ph ph-caret-right font-bold"></i></button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        let currentAwb = null;
+        function openPanel(awb) {
+            currentAwb = awb;
+            const s = db.shipments.find(x => x.awb === awb);
+            if(!s) return;
+
+            document.getElementById('pnl-awb').innerText = s.awb;
+            document.getElementById('pnl-order').innerText = `Order: ${s.orderId}`;
+            
+            const cfg = priorityConfig[s.priority];
+            let badge = document.getElementById('pnl-priority-badge');
+            badge.className = `px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase mb-2 inline-block ${cfg.color}`;
+            badge.innerText = s.priority;
+
+            document.getElementById('pnl-customer').innerText = s.customer;
+            document.getElementById('pnl-dest').innerText = `${s.city}, ${s.state}`;
+            document.getElementById('pnl-courier').innerText = s.courier;
+            document.getElementById('pnl-edd').innerText = new Date(s.edd).toLocaleDateString();
+            document.getElementById('pnl-status').innerText = s.status;
+            document.getElementById('pnl-location').innerText = `Last location: ${s.location}`;
+            document.getElementById('pnl-resolve-status').value = s.resolution || 'OPEN';
+
+            renderTimeline();
+            document.getElementById('panel-overlay').classList.remove('hidden');
+            document.getElementById('panel').classList.remove('translate-x-full');
+        }
+
+        function closePanel() {
+            document.getElementById('panel').classList.add('translate-x-full');
+            setTimeout(() => document.getElementById('panel-overlay').classList.add('hidden'), 300);
+            currentAwb = null;
+        }
+
+        function renderTimeline() {
+            const container = document.getElementById('pnl-timeline');
+            container.innerHTML = '';
+            const history = db.followups.filter(f => f.awb === currentAwb).sort((a,b) => new Date(b.date) - new Date(a.date));
+            
+            if(history.length === 0) {
+                container.innerHTML = '<p class="text-xs text-gray-400 italic">No history recorded.</p>';
+                return;
+            }
+
+            history.forEach(h => {
+                let d = new Date(h.date);
+                let isSys = h.user === 'System';
+                let iconBg = isSys ? 'bg-gray-100 text-gray-500' : 'bg-purple-100 text-gelixer-violet';
+                let icon = isSys ? 'ph-robot' : 'ph-user';
+
+                container.innerHTML += `
+                    <div class="relative pl-8 py-3 timeline-item">
+                        <div class="timeline-line"></div>
+                        <div class="absolute left-0 top-3 w-6 h-6 rounded-full ${iconBg} flex items-center justify-center z-10 shadow-sm border border-white"><i class="ph ${icon} text-xs"></i></div>
+                        <div class="bg-gray-50 border border-gray-100 rounded-lg p-3">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs font-bold text-gray-700">${h.user}</span>
+                                <span class="text-[10px] text-gray-400">${d.toLocaleString('en-GB', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'})}</span>
+                            </div>
+                            <p class="text-xs text-gray-600 leading-relaxed">${h.comment}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Setup clock
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('current-date').innerText = now.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('current-time').innerText = now.toLocaleTimeString('en-US');
+        }, 1000);
+
+    </script>
+</body>
+</html>
