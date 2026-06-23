@@ -1,0 +1,147 @@
+import React from "react";
+import { motion } from "motion/react";
+import { Instagram, Linkedin, Youtube, Mail, ArrowUp } from "lucide-react";
+
+interface FooterProps {
+  onOpenContact: () => void;
+}
+
+export default function Footer({ onOpenContact }: FooterProps) {
+  const handleScrollTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const socials = [
+    {
+      icon: <Instagram className="w-5 h-5" />,
+      href: "https://instagram.com",
+      label: "Instagram",
+      hoverClass: "hover:text-[#E1306C]",
+    },
+    {
+      icon: <Linkedin className="w-5 h-5" />,
+      href: "https://linkedin.com",
+      label: "LinkedIn",
+      hoverClass: "hover:text-[#0077B5]",
+    },
+    {
+      icon: <Youtube className="w-5 h-5" />,
+      href: "https://youtube.com",
+      label: "YouTube",
+      hoverClass: "hover:text-[#FF0000]",
+    },
+    {
+      icon: <Mail className="w-5 h-5" />,
+      href: "mailto:gokulvaasp@gmail.com",
+      label: "Email",
+      hoverClass: "hover:text-[#7B61FF]",
+    },
+  ];
+
+  return (
+    <footer id="contact-section" className="relative bg-[#050719] text-white pt-24 pb-12 overflow-hidden">
+      {/* Background neon dots gradient glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-[#7B61FF]/10 blur-3xl pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
+        
+        {/* SECTION 7: FINAL CTA HEADER BLOCK */}
+        <div className="text-center space-y-8 max-w-4xl mx-auto pb-20 border-b border-white/10">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="space-y-6"
+          >
+            <h2 className="font-display text-3xl md:text-5xl lg:text-6xl font-black tracking-tighter text-white leading-tight">
+              Observe. Decode. <span className="text-gradient font-black">Create Impact.</span>
+            </h2>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="pt-4"
+          >
+            <button
+              onClick={onOpenContact}
+              className="cursor-pointer px-10 py-5 bg-white text-[#050719] font-sans text-sm font-semibold rounded-full shadow-lg hover:shadow-2xl hover:bg-gradient-gv hover:text-white transition-all duration-300 transform active:scale-95"
+            >
+              Let's Decode Your Brand →
+            </button>
+          </motion.div>
+        </div>
+
+        {/* BOTTOM FOOTER NAVIGATION AND CREDIT DATA */}
+        <div className="pt-16 grid grid-cols-1 md:grid-cols-12 gap-8 items-center lg:items-start">
+          
+          {/* Logo Brand information */}
+          <div className="md:col-span-4 space-y-4 text-left">
+            <div className="flex items-center space-x-2">
+              <img
+                src="/input_file_0.png"
+                alt="thebrandGV"
+                className="h-10 w-auto object-contain block"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+
+            <p className="font-mono text-[10px] tracking-widest text-zinc-400 uppercase">
+              observe  • decode•  impact
+            </p>
+          </div>
+
+          {/* Quick links */}
+          <div className="md:col-span-4 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-zinc-300 font-sans">
+            <a href="#home" className="hover:text-white transition-colors uppercase text-xs tracking-wider">Home</a>
+            <a href="#about" className="hover:text-white transition-colors uppercase text-xs tracking-wider">About</a>
+            <a href="#shows" className="hover:text-white transition-colors uppercase text-xs tracking-wider">Shows</a>
+            <a href="#thoughts" className="hover:text-white transition-colors uppercase text-xs tracking-wider">Thoughts</a>
+          </div>
+
+          {/* Social links block and Back to top */}
+          <div className="md:col-span-4 flex flex-col items-center md:items-end space-y-4">
+            <div className="flex space-x-6">
+              {socials.map((social) => (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`text-zinc-400 transition-colors ${social.hoverClass}`}
+                  aria-label={social.label}
+                >
+                  {social.icon}
+                </a>
+              ))}
+            </div>
+
+            <button
+              onClick={handleScrollTop}
+              className="cursor-pointer group flex items-center space-x-2 text-xs font-mono text-zinc-400 hover:text-white transition-colors mt-2"
+              aria-label="Back to top"
+            >
+              <span>BACK TO TOP</span>
+              <span className="p-1.5 rounded-full border border-zinc-700 group-hover:border-white transition-all">
+                <ArrowUp className="w-3.5 h-3.5" />
+              </span>
+            </button>
+          </div>
+
+        </div>
+
+        {/* BOTTOMMOST REGULATORY AND TECH DATA CARD (HUMBLE NOT NOISY) */}
+        <div className="pt-12 mt-12 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center text-[10px] font-mono text-zinc-500 gap-4">
+          <span>© {new Date().getFullYear()} thebrandGV</span>
+          <div className="flex space-x-4">
+            <span>Strategized by BrandGV</span>
+          </div>
+        </div>
+
+      </div>
+    </footer>
+  );
+}
