@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>thebrandGV — Observe. Decode. Create Impact.</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="shortcut icon" href="favicon.png">
+<style>
+  /* ── SCROLL PROGRESS BAR ── */
+  #scroll-progress {
+    position: fixed; top: 0; left: 0; z-index: 9999;
+    height: 3px; width: 0%;
+    background: linear-gradient(90deg, var(--purple) 0%, var(--cyan) 100%);
+    transition: width 0.1s linear;
+    box-shadow: 0 0 8px rgba(124,92,252,0.6);
+    pointer-events: none;
+  }
+
+  /* ── HERO LOGO ABOVE EYEBROW ── */
+  .hero-brand-logo {
+    display: block; height: 52px; width: auto; margin-bottom: 28px;
+  }
+  .anim-hero-text    { opacity:0; transform:translateY(30px); }
+  .anim-hero-photo   { opacity:0; transform:scale(0.95); }
+  .anim-card         { opacity:0; transform:translateY(25px); }
+  .anim-service      { opacity:0; transform:translateY(15px); }
+  .anim-step         { opacity:0; transform:translateY(20px); }
+  .anim-post         { opacity:0; transform:translateY(15px); }
+  .anim-cta-heading  { opacity:0; transform:scale(0.95); }
+  .anim-cta-btn      { opacity:0; transform:translateY(15px); }
+
+  /* ── ANIMATED IN STATE ── */
+  .anim-in {
+    opacity:1 !important;
+    transform:none !important;
+  }
+
+  /* ── SHOW CARD 3D TILT ── */
+  .show-card { transform-style:preserve-3d; will-change:transform; }
+
+  /* ── FAQ smooth height ── */
+  .faq-a {
+    max-height:0; overflow:hidden; padding:0 24px;
+    transition:max-height 0.35s cubic-bezier(0.4,0,0.2,1), padding 0.35s ease;
+  }
+  .faq-item.open .faq-a { max-height:300px; padding:0 24px 20px; }
+  .faq-chevron { transition:transform 0.3s ease; display:inline-block; }
+  .faq-item.open .faq-chevron { transform:rotate(180deg); }
+
+  /* ── DIM TAB text fade ── */
+  .dim-panel { transition:opacity 0.3s ease; opacity:0; display:none; }
+  .dim-panel.active { display:block; opacity:1; }
+
+  /* ── CONTACT DRAWER (slide from right) ── */
+  .contact-overlay { align-items:center; justify-content:flex-end; padding:0; }
+  .contact-modal {
+    max-width:580px; border-radius:0; height:100vh; overflow-y:auto;
+    transform:translateX(100%);
+    transition:transform 0.5s cubic-bezier(0.16,1,0.3,1);
+    border-radius:20px 0 0 20px;
+  }
+  .contact-overlay.open .contact-modal { transform:translateX(0); }
+
+  /* ── STEP LINE HOVER ── */
+  .step-line { transition:width 0.7s ease-in-out; }
+  .step:hover .step-line { width:100%; }
+
+  /* ── REDUCED MOTION ── */
+  @media (prefers-reduced-motion:reduce) {
+    .anim-hero-text,.anim-hero-photo,.anim-card,.anim-service,.anim-step,.anim-post,.anim-cta-heading,.anim-cta-btn
+    { opacity:1!important; transform:none!important; transition:none!important; }
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --dark: #0a0e1a;
+    --dark-2: #0f1629;
+    --light-bg: #f4f5f8;
+    --white: #ffffff;
+    --purple: #7c5cfc;
+    --cyan: #4fd1e8;
+    --purple-light: #9b7ffd;
+    --text-dark: #0f1629;
+    --text-muted: #6b7280;
+    --text-muted-light: #8b95a8;
+    --border: rgba(255,255,255,0.08);
+    --border-light: #e5e7eb;
+  }
+
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', sans-serif; background: var(--white); color: var(--text-dark); line-height: 1.6; overflow-x: hidden; }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: var(--white);
+    border-bottom: 1px solid var(--border-light);
+    padding: 0 48px;
+    height: 88px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo { display: flex; flex-direction: column; gap: 0; text-decoration: none; }
+  .nav-logo-text { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; color: var(--text-dark); letter-spacing: -0.5px; }
+  .nav-logo-text span { color: var(--purple); }
+  .nav-logo-text span.cyan { color: var(--cyan); }
+  .nav-tagline { font-size: 10px; color: var(--text-muted); letter-spacing: 0.03em; display: flex; gap: 8px; align-items: center; margin-top: 1px; }
+  .nav-tagline span { color: var(--purple); }
+  .nav-tagline span:nth-child(3) { color: var(--cyan); }
+  .nav-tagline .dot { color: var(--text-muted); font-size: 6px; }
+
+  .nav-links { display: flex; gap: 36px; align-items: center; }
+  .nav-links a { font-size: 13px; font-weight: 500; color: var(--text-dark); text-decoration: none; letter-spacing: 0.03em; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--purple); }
+  .nav-links a.active { border-bottom: 2px solid var(--text-dark); padding-bottom: 2px; }
+
+  .nav-cta {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--text-dark); color: var(--white);
+    border: none; border-radius: 100px;
+    padding: 10px 22px; font-size: 13px; font-weight: 600;
+    cursor: pointer; text-decoration: none; transition: opacity 0.2s;
+    letter-spacing: 0.01em;
+  }
+  .nav-cta:hover { opacity: 0.85; }
+
+  /* ── NAV SEARCH ── */
+  .nav-search {
+    position: relative; display: flex; align-items: center;
+  }
+  .nav-search input {
+    background: var(--light-bg); border: 1px solid var(--border-light);
+    border-radius: 100px; padding: 8px 16px 8px 38px;
+    font-size: 13px; color: var(--text-dark); outline: none; width: 200px;
+    transition: border-color 0.2s, width 0.3s;
+    font-family: 'Inter', sans-serif;
+  }
+  .nav-search input:focus { border-color: var(--purple); width: 260px; }
+  .nav-search input::placeholder { color: var(--text-muted-light); }
+  .nav-search-icon {
+    position: absolute; left: 12px; color: var(--text-muted-light); pointer-events: none;
+  }
+
+  /* ── CONTACT FORM MODAL ── */
+  .contact-overlay {
+    display: none; position: fixed; inset: 0; z-index: 500;
+    background: rgba(10,14,26,0.8); backdrop-filter: blur(10px);
+    align-items: center; justify-content: center; padding: 40px 24px;
+    overflow-y: auto;
+  }
+  .contact-overlay.open { display: flex; }
+  .contact-modal {
+    background: var(--white); border-radius: 24px;
+    width: 100%; max-width: 640px; position: relative;
+    animation: contactIn 0.35s cubic-bezier(0.16,1,0.3,1);
+    overflow: hidden;
+  }
+  @keyframes contactIn { from { opacity:0; transform:translateY(32px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+  .contact-modal-header {
+    background: var(--dark); padding: 48px 52px 40px; position: relative;
+  }
+  .contact-modal-close {
+    position: absolute; top: 18px; right: 18px;
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+    cursor: pointer; font-size: 17px; color: rgba(255,255,255,0.6);
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+  }
+  .contact-modal-close:hover { background: rgba(255,255,255,0.16); color: var(--white); }
+  .contact-modal-eyebrow {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .contact-modal-eyebrow::before { content:''; width:7px; height:7px; background:var(--purple); border-radius:50%; display:block; }
+  .contact-modal-title {
+    font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 800;
+    letter-spacing: -1px; color: var(--white); line-height: 1.2; margin-bottom: 10px;
+  }
+  .contact-modal-sub { font-size: 14px; color: rgba(255,255,255,0.45); line-height: 1.6; }
+  .contact-modal-body { padding: 40px 52px 48px; }
+  .cf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .cf-group { margin-bottom: 20px; }
+  .cf-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 8px; display: block;
+  }
+  .cf-input, .cf-select, .cf-textarea {
+    width: 100%; background: var(--light-bg); border: 1.5px solid var(--border-light);
+    border-radius: 12px; padding: 13px 16px; font-size: 14px; color: var(--text-dark);
+    font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s, background 0.2s;
+  }
+  .cf-input:focus, .cf-select:focus, .cf-textarea:focus { border-color: var(--purple); background: var(--white); }
+  .cf-input::placeholder, .cf-textarea::placeholder { color: var(--text-muted-light); }
+  .cf-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; background-color: var(--light-bg); cursor: pointer; }
+  .cf-textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
+  .cf-submit {
+    width: 100%; background: linear-gradient(135deg, var(--purple), var(--cyan));
+    color: var(--white); border: none; border-radius: 100px;
+    padding: 16px; font-size: 15px; font-weight: 700; cursor: pointer;
+    letter-spacing: 0.02em; transition: opacity 0.2s; margin-top: 4px;
+  }
+  .cf-submit:hover { opacity: 0.9; }
+  .cf-success {
+    display: none; text-align: center; padding: 48px 40px;
+  }
+  .cf-success-icon {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple), var(--cyan));
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px; font-size: 28px;
+  }
+  .cf-success h3 { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 800; color: var(--text-dark); margin-bottom: 10px; }
+  .cf-success p { font-size: 15px; color: var(--text-muted); line-height: 1.65; max-width: 360px; margin: 0 auto; }
+  @media (max-width: 600px) {
+    .contact-modal-header { padding: 36px 28px 28px; }
+    .contact-modal-body { padding: 28px 28px 36px; }
+    .cf-row { grid-template-columns: 1fr; }
+  }
+  .blog-modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 500;
+    background: rgba(10,14,26,0.7); backdrop-filter: blur(6px);
+    align-items: flex-start; justify-content: center;
+    padding: 60px 24px; overflow-y: auto;
+  }
+  .blog-modal-overlay.open { display: flex; }
+  .blog-modal {
+    background: var(--white); border-radius: 20px; width: 100%; max-width: 760px;
+    padding: 56px 60px; position: relative; animation: modalIn 0.3s ease;
+  }
+  @keyframes modalIn { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+  .blog-modal-close {
+    position: absolute; top: 20px; right: 20px;
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border-light);
+    background: var(--white); cursor: pointer; font-size: 18px; color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+  }
+  .blog-modal-close:hover { background: var(--light-bg); color: var(--text-dark); }
+  .blog-modal .post-meta { margin-bottom: 20px; }
+  .blog-modal-title { font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 800; letter-spacing: -1px; line-height: 1.2; color: var(--text-dark); margin-bottom: 28px; }
+  .blog-modal-divider { height: 1px; background: var(--border-light); margin-bottom: 28px; }
+  .blog-modal-body p { font-size: 16px; color: var(--text-dark); line-height: 1.85; margin-bottom: 20px; }
+  .blog-modal-body h4 { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: var(--text-dark); margin: 32px 0 12px; }
+  .blog-modal-body blockquote {
+    border-left: 3px solid var(--purple); padding: 16px 24px;
+    background: rgba(124,92,252,0.04); border-radius: 0 8px 8px 0;
+    margin: 24px 0; font-style: italic; color: var(--text-muted);
+  }
+
+  /* ── FOOTER SEARCH ── */
+  .footer-search {
+    position: relative; display: flex; align-items: center; margin-top: 16px;
+  }
+  .footer-search input {
+    background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+    border-radius: 100px; padding: 10px 16px 10px 40px;
+    font-size: 13px; color: var(--white); outline: none; width: 260px;
+    font-family: 'Inter', sans-serif; transition: border-color 0.2s;
+  }
+  .footer-search input:focus { border-color: rgba(124,92,252,0.5); }
+  .footer-search input::placeholder { color: rgba(255,255,255,0.3); }
+  .footer-search-icon { position: absolute; left: 13px; color: rgba(255,255,255,0.35); pointer-events: none; }
+  #home {
+    min-height: 100vh;
+    background: var(--white);
+    display: flex; align-items: center;
+    padding: 136px 80px 80px;
+    position: relative;
+  }
+  .hero-inner {
+    display: grid; grid-template-columns: 1fr 520px; gap: 60px; align-items: center;
+    max-width: 1300px; margin: 0 auto; width: 100%;
+  }
+  .hero-eyebrow {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.14em;
+    color: var(--text-muted); text-transform: uppercase; margin-bottom: 28px;
+  }
+  .hero-eyebrow::before { content: ''; display: block; width: 28px; height: 2px; background: var(--purple); }
+  .hero-h1 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(48px, 6vw, 80px); font-weight: 800; line-height: 1.05; letter-spacing: -2px; color: var(--text-dark); margin-bottom: 24px; }
+  .hero-h1 .accent { background: linear-gradient(135deg, var(--purple) 0%, var(--cyan) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .hero-sub { font-size: 17px; color: var(--text-muted); line-height: 1.65; max-width: 480px; margin-bottom: 44px; }
+  .hero-actions { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--text-dark); color: var(--white);
+    border: none; border-radius: 100px;
+    padding: 16px 30px; font-size: 14px; font-weight: 600;
+    cursor: pointer; text-decoration: none; transition: opacity 0.2s;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-primary:hover { opacity: 0.8; }
+  .social-cluster { display: flex; gap: 4px; align-items: center; border: 1px solid var(--border-light); border-radius: 100px; padding: 8px 16px; }
+  .social-cluster a { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); text-decoration: none; transition: color 0.2s; border-radius: 50%; }
+  .social-cluster a:hover { color: var(--text-dark); }
+  .social-cluster svg { width: 16px; height: 16px; }
+
+  .hero-photo-wrap { position: relative; }
+  .hero-photo {
+    width: 100%; aspect-ratio: 3/4; object-fit: cover;
+    border-radius: 20px; display: block;
+    background: linear-gradient(135deg, #1a2035 0%, #2d3561 100%);
+  }
+  .hero-photo-img { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 20px; display: block; }
+
+  .hero-scroll {
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.14em; color: var(--text-muted);
+    text-transform: uppercase; cursor: pointer;
+  }
+  .hero-scroll svg { animation: bounce 2s infinite; }
+  @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
+
+  /* ── DARK BAND ── */
+  .dark-band {
+    background: var(--dark);
+    padding: 80px 80px;
+  }
+  .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; max-width: 1300px; margin: 0 auto; }
+  .step {
+    padding: 40px 40px 40px 0;
+    border-right: 1px solid var(--border);
+    position: relative;
+  }
+  .step:last-child { border-right: none; padding-right: 0; padding-left: 40px; }
+  .step:nth-child(2) { padding-left: 40px; }
+  .step-num { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--purple); margin-bottom: 12px; }
+  .step-icon {
+    width: 44px; height: 44px; border: 1px solid var(--border);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    position: absolute; top: 40px; right: 40px; color: var(--purple);
+  }
+  .step:nth-child(2) .step-icon { color: var(--purple-light); right: auto; left: calc(100% - 40px - 44px); }
+  .step:last-child .step-icon { color: #f5c518; right: 0; }
+  .step-label { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--purple); margin-bottom: 14px; }
+  .step:nth-child(2) .step-label { color: var(--purple-light); }
+  .step:last-child .step-label { color: #f5c518; }
+  .step-desc { font-size: 14px; color: rgba(255,255,255,0.55); line-height: 1.6; max-width: 260px; }
+  .step-line { width: 40px; height: 2px; margin-top: 24px; background: linear-gradient(90deg, var(--purple), transparent); }
+
+  /* ── SHOWS SECTION ── */
+  #shows { background: var(--light-bg); padding: 100px 80px; }
+  .section-eyebrow { display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--purple); margin-bottom: 20px; }
+  .section-eyebrow::before { content: ''; width: 8px; height: 8px; background: var(--purple); border-radius: 50%; display: block; }
+  .section-h2 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(36px, 5vw, 60px); font-weight: 800; letter-spacing: -2px; color: var(--text-dark); margin-bottom: 16px; }
+  .section-sub { font-size: 16px; color: var(--text-muted); max-width: 480px; line-height: 1.65; margin-bottom: 60px; }
+  .shows-meta { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 48px; }
+  .tap-hint { font-size: 12px; color: var(--text-muted-light); font-style: italic; letter-spacing: 0.02em; }
+
+  .shows-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .show-card {
+    background: var(--white); border: 1px solid var(--border-light);
+    border-radius: 20px; padding: 28px 20px 24px;
+    cursor: pointer; transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+    position: relative; overflow: hidden;
+  }
+  .show-card:hover, .show-card.active {
+    border-color: var(--purple);
+    box-shadow: 0 0 0 1px var(--purple);
+    transform: translateY(-2px);
+  }
+  .show-card-logo { width: 100%; max-height: 120px; object-fit: contain; margin-bottom: 24px; display: block; }
+  .show-card-divider { height: 1px; background: var(--border-light); margin-bottom: 16px; }
+  .show-tag { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--purple); margin-bottom: 12px; }
+  .show-desc { font-size: 13px; color: var(--text-muted); line-height: 1.55; }
+
+  /* ── ABOUT ── */
+  #about { background: var(--white); padding: 100px 80px; }
+  .about-grid { display: grid; grid-template-columns: 420px 1fr; gap: 80px; align-items: start; max-width: 1300px; margin: 0 auto; }
+  .about-h2 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(40px, 5vw, 64px); font-weight: 800; letter-spacing: -2.5px; line-height: 1.05; color: var(--text-dark); margin-bottom: 40px; }
+  .about-card {
+    background: var(--light-bg); border: 1px solid var(--border-light); border-radius: 14px;
+    padding: 16px 20px; display: flex; align-items: center; gap: 14px; margin-top: 40px;
+  }
+  .about-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple), var(--cyan));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; color: var(--white); flex-shrink: 0;
+  }
+  .about-card-label { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
+  .about-card-value { font-size: 14px; font-weight: 700; color: var(--text-dark); }
+
+  .about-right p { font-size: 16px; color: var(--text-dark); line-height: 1.75; margin-bottom: 20px; }
+  .about-right p strong { font-weight: 700; }
+
+  .strategic-dims { margin-top: 36px; }
+  .strategic-dims-label { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; }
+  .dims-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .dim-tab {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 100px; border: 1px solid var(--border-light);
+    font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;
+    background: var(--white); color: var(--text-dark);
+  }
+  .dim-tab.active { border-color: var(--purple); background: rgba(124,92,252,0.06); color: var(--purple); }
+  .dim-tab:hover { border-color: var(--purple); }
+  .dim-icon { font-size: 14px; }
+
+  .dim-panel {
+    background: rgba(124,92,252,0.04); border: 1px solid rgba(124,92,252,0.15);
+    border-radius: 12px; padding: 20px 24px; display: none;
+  }
+  .dim-panel.active { display: block; }
+  .dim-panel-label { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--purple); margin-bottom: 10px; }
+  .dim-panel p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+
+  /* ── CAPABILITIES ── */
+  #capabilities { background: var(--dark); padding: 100px 80px; }
+  #capabilities .section-eyebrow::before { background: var(--purple); }
+  #capabilities .section-eyebrow { color: var(--purple); }
+  #capabilities .section-h2 { color: var(--white); }
+  #capabilities .section-sub { color: rgba(255,255,255,0.5); }
+
+  .services-list { display: flex; flex-direction: column; gap: 0; max-width: 1300px; margin: 0 auto; }
+  .service-item {
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 36px 40px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+    cursor: pointer;
+  }
+  .service-item:hover { border-color: rgba(124,92,252,0.4); }
+  .service-item.active { border-color: rgba(124,92,252,0.6); background: rgba(124,92,252,0.04); }
+  .service-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+  .service-title-row { display: flex; align-items: center; gap: 16px; }
+  .service-num { font-size: 13px; font-weight: 700; color: var(--purple); min-width: 28px; }
+  .service-name { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; color: var(--white); }
+  .service-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .service-tag {
+    border: 1px solid var(--border);
+    border-radius: 100px; padding: 6px 14px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+  }
+  .service-body { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .service-outcome-label, .service-components-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 12px;
+  }
+  .service-outcome p { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.7; }
+  .service-components ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .service-components li { font-size: 14px; color: rgba(255,255,255,0.6); display: flex; align-items: center; gap: 10px; }
+  .service-components li::before { content: ''; width: 6px; height: 6px; background: var(--purple); border-radius: 50%; flex-shrink: 0; }
+
+  /* ── FAQ ── */
+  #faq { background: var(--white); padding: 100px 80px; }
+  .faq-grid { display: grid; grid-template-columns: 380px 1fr; gap: 80px; max-width: 1300px; margin: 0 auto; }
+  .faq-list { display: flex; flex-direction: column; gap: 8px; }
+  .faq-item { border: 1px solid var(--border-light); border-radius: 12px; overflow: hidden; }
+  .faq-q {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20px 24px; cursor: pointer; font-size: 15px; font-weight: 500; color: var(--text-dark);
+    background: var(--white); transition: background 0.2s;
+  }
+  .faq-q:hover { background: var(--light-bg); }
+  .faq-chevron { transition: transform 0.2s; color: var(--text-muted); font-size: 14px; }
+  .faq-item.open .faq-chevron { transform: rotate(180deg); }
+  .faq-a { font-size: 14px; color: var(--text-muted); line-height: 1.7; padding: 0 24px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s; }
+  .faq-item.open .faq-a { max-height: 200px; padding: 0 24px 20px; }
+
+  /* ── THOUGHTS ── */
+  #thoughts { background: var(--light-bg); padding: 100px 80px; }
+  .thoughts-header { max-width: 1300px; margin: 0 auto 60px; }
+  .posts-list { max-width: 1300px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+  .post-card {
+    background: var(--white); border: 1px solid var(--border-light);
+    border-radius: 16px; padding: 32px 36px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+  }
+  .post-card:hover { border-color: var(--purple); box-shadow: 0 4px 24px rgba(124,92,252,0.08); }
+  .post-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; font-size: 12px; }
+  .post-cat { font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--purple); }
+  .post-meta-dot { color: var(--text-muted-light); }
+  .post-date, .post-read { color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+  .post-h3 { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; color: var(--text-dark); letter-spacing: -0.5px; margin-bottom: 10px; line-height: 1.3; }
+  .post-excerpt { font-size: 14px; color: var(--text-muted); line-height: 1.65; margin-bottom: 24px; }
+  .post-link { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--purple); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; border-top: 1px solid var(--border-light); padding-top: 20px; width: 100%; }
+  .view-more-btn {
+    display: flex; align-items: center; gap: 8px;
+    margin: 40px auto 0;
+    background: var(--white); border: 1px solid var(--border-light);
+    border-radius: 100px; padding: 14px 28px; font-size: 13px; font-weight: 600;
+    cursor: pointer; color: var(--text-dark); transition: border-color 0.2s;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .view-more-btn:hover { border-color: var(--text-dark); }
+
+  /* ── CTA BAND ── */
+  .cta-band {
+    background: var(--dark); padding: 100px 80px;
+    text-align: center;
+  }
+  .cta-band h2 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(40px, 6vw, 72px); font-weight: 800; letter-spacing: -2px; color: var(--white); margin-bottom: 40px; }
+  .cta-band h2 span { background: linear-gradient(135deg, var(--purple) 0%, var(--cyan) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .btn-cta-band {
+    background: var(--white); color: var(--text-dark);
+    border: none; border-radius: 100px; padding: 18px 36px;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 10px;
+    text-decoration: none; transition: opacity 0.2s;
+  }
+  .btn-cta-band:hover { opacity: 0.9; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--dark);
+    border-top: 1px solid var(--border);
+    padding: 40px 80px 28px;
+  }
+  .footer-main {
+    display: grid; grid-template-columns: 220px 1fr auto;
+    gap: 60px; align-items: start; margin-bottom: 40px;
+    padding-bottom: 32px; border-bottom: 1px solid var(--border);
+  }
+  .footer-logo { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: var(--white); }
+  .footer-logo span { color: var(--purple); }
+  .footer-logo-tag { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 4px; letter-spacing: 0.08em; }
+  .footer-links { display: flex; gap: 36px; }
+  .footer-links a { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.55); text-decoration: none; letter-spacing: 0.04em; text-transform: uppercase; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--white); }
+  .footer-social { display: flex; gap: 12px; }
+  .footer-social a { width: 38px; height: 38px; border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.5); text-decoration: none; transition: border-color 0.2s, color 0.2s; }
+  .footer-social a:hover { border-color: rgba(255,255,255,0.4); color: var(--white); }
+  .footer-social svg { width: 15px; height: 15px; }
+  .footer-bottom { display: flex; justify-content: space-between; align-items: center; }
+  .footer-copy { font-size: 12px; color: rgba(255,255,255,0.3); }
+  .footer-credit { font-size: 12px; color: rgba(255,255,255,0.3); font-style: italic; }
+  .back-to-top {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(255,255,255,0.4); cursor: pointer; background: none; border: none;
+    transition: color 0.2s;
+  }
+  .back-to-top:hover { color: var(--white); }
+  .back-to-top-icon {
+    width: 32px; height: 32px; border: 1px solid var(--border);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1100px) {
+    .shows-grid { grid-template-columns: repeat(3, 1fr); }
+    .hero-inner { grid-template-columns: 1fr; }
+    .hero-photo-wrap { display: none; }
+  }
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .nav-links { display: none; }
+    #home, #shows, #about, #capabilities, #faq, #thoughts, .cta-band, footer { padding-left: 24px; padding-right: 24px; }
+    .shows-grid { grid-template-columns: repeat(2, 1fr); }
+    .about-grid, .faq-grid { grid-template-columns: 1fr; }
+    .steps-grid { grid-template-columns: 1fr; }
+    .service-body { grid-template-columns: 1fr; }
+    .service-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .footer-main { grid-template-columns: 1fr; gap: 24px; }
+    .footer-links { flex-wrap: wrap; gap: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SCROLL PROGRESS BAR -->
+<div id="scroll-progress"></div>
+<nav id="navbar">
+  <a href="#home" class="nav-logo">
+    <img src="logo-main-dark.png" alt="thebrandGV" style="height:72px;width:auto;display:block;">
+  </a>
+  <div class="nav-links">
+    <a href="#home" class="active">HOME</a>
+    <a href="#about">ABOUT</a>
+    <a href="#shows">SHOWS</a>
+    <a href="blog.html">THOUGHTS</a>
+    <a href="#contact">CONTACT</a>
+  </div>
+  <div class="nav-search">
+    <span class="nav-search-icon">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </span>
+    <input type="text" placeholder="Search thoughts..." id="nav-search-input" oninput="filterBlogs(this.value)">
+  </div>
+  <a href="#" onclick="openContact(event)" class="nav-cta">WORK WITH GV →</a>
+</nav>
+
+<!-- HERO -->
+<section id="home">
+  <div class="hero-inner">
+    <div class="anim-hero-text">
+      <img src="ko.png" alt="thebrandGV" class="hero-brand-logo">
+      <div class="hero-eyebrow">BRAND CONSULTANT &amp; BRAND DECODER</div>
+      <h1 class="hero-h1">I decode brands.<br>So you can build <span class="accent">impact.</span></h1>
+      <p class="hero-sub">Observing ideas. Decoding strategies. Creating meaningful brand experiences that connect people and businesses.</p>
+      <div class="hero-actions">
+        <a href="#" onclick="openContact(event)" class="btn-primary">Decode Your Strategic Bottleneck →</a>
+        <div class="social-cluster">
+          <a href="https://www.instagram.com/thebrandgv" target="_blank" rel="noopener" title="Instagram" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a href="https://www.linkedin.com/in/gokulvaas/" target="_blank" rel="noopener" title="LinkedIn" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="3"/><line x1="7" y1="11" x2="7" y2="17"/><line x1="7" y1="7" x2="7" y2="8"/><path d="M11 17v-6m0 0c0-1.5 5-1.5 5 0v6"/></svg>
+          </a>
+          <a href="https://www.youtube.com/channel/UCJzKuE6m9IgKJYxSURDXOmQ" target="_blank" rel="noopener" title="YouTube" aria-label="YouTube">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="3"/><polygon points="10,8 16,12 10,16" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a href="mailto:hello@thebrandgv.com" title="Email" aria-label="Email">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="3"/><polyline points="2,4 12,14 22,4"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="hero-photo-wrap anim-hero-photo">
+      <img src="hero.png" alt="GV — Brand Consultant" class="hero-photo-img">
+    </div>
+  </div>
+  <div class="hero-scroll" onclick="document.getElementById('steps').scrollIntoView({behavior:'smooth'})">
+    ENTER EXPERIENCE
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v10M3 8l5 5 5-5"/></svg>
+  </div>
+</section>
+
+<!-- STEPS BAND -->
+<div class="dark-band" id="steps">
+  <div class="steps-grid">
+    <div class="step anim-step">
+      <div class="step-num">01</div>
+      <div class="step-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="10" stroke-width="1.5" stroke-dasharray="2 3"/></svg>
+      </div>
+      <div class="step-label">OBSERVE</div>
+      <p class="step-desc">Understanding people, markets, culture and creativity.</p>
+      <div class="step-line"></div>
+    </div>
+    <div class="step anim-step">
+      <div class="step-num">02</div>
+      <div class="step-icon" style="right:0;left:auto;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg>
+      </div>
+      <div class="step-label" style="color:var(--purple-light)">DECODE</div>
+      <p class="step-desc">Breaking down strategies behind successful brands.</p>
+      <div class="step-line" style="background:linear-gradient(90deg,var(--purple-light),transparent)"></div>
+    </div>
+    <div class="step anim-step">
+      <div class="step-num">03</div>
+      <div class="step-icon" style="color:#f5c518;right:0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <div class="step-label" style="color:var(--white)">CREATE IMPACT</div>
+      <p class="step-desc">Transforming insights into memorable brand experiences.</p>
+      <div class="step-line" style="background:linear-gradient(90deg,#f5c518,transparent)"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SHOWS -->
+<section id="shows">
+  <div style="max-width:1300px;margin:0 auto;">
+    <div class="shows-meta">
+      <div>
+        <div class="section-eyebrow">GV ORIGINAL MEDIA</div>
+        <h2 class="section-h2">Ideas. Brands.<br>Stories. Decoded.</h2>
+        <p class="section-sub">Five shows. Five perspectives. One mission — understand brands and the world around them.</p>
+      </div>
+      <div class="tap-hint">[Tap cards for episode breakdowns]</div>
+    </div>
+    <div class="shows-grid">
+      <div class="show-card anim-card" onclick="this.classList.toggle('active')">
+        <img src="gv-decodes.png" alt="GV Decodes" class="show-card-logo">
+        <div class="show-card-divider"></div>
+        <div class="show-tag">THE STRATEGY SHOW</div>
+        <p class="show-desc">Breaking down the world's most interesting brands, strategies, campaigns and consumer behaviour.</p>
+      </div>
+      <div class="show-card anim-card" onclick="this.classList.toggle('active')">
+        <img src="behind-the-brands.png" alt="Behind the Brands" class="show-card-logo">
+        <div class="show-card-divider"></div>
+        <div class="show-tag">THE STORY SHOW</div>
+        <p class="show-desc">Stories behind founders, business decisions, journeys and lessons that built great brands.</p>
+      </div>
+      <div class="show-card anim-card" onclick="this.classList.toggle('active')">
+        <img src="adspot.png" alt="Ad Spot" class="show-card-logo">
+        <div class="show-card-divider"></div>
+        <div class="show-tag">THE CREATIVE SHOW</div>
+        <p class="show-desc">Spotting creativity in ads, billboards, packaging, copywriting and campaigns.</p>
+      </div>
+      <div class="show-card active anim-card" onclick="this.classList.toggle('active')">
+        <img src="fix-this.png" alt="Fix This" class="show-card-logo">
+        <div class="show-card-divider"></div>
+        <div class="show-tag">THE CONSULTING SHOW</div>
+        <p class="show-desc">Real brand problems, honest feedback and actionable fixes that create impact.</p>
+      </div>
+      <div class="show-card anim-card" onclick="this.classList.toggle('active')">
+        <img src="prompted-ai-show.png" alt="Prompted — The AI Show" class="show-card-logo">
+        <div class="show-card-divider"></div>
+        <div class="show-tag">THE AI SHOW</div>
+        <p class="show-desc">Exploring AI tools, workflows, automation and the future of creativity.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-grid">
+    <div>
+      <div class="section-eyebrow">BEHIND THE BRAND</div>
+      <h2 class="about-h2">The observer behind the brand.</h2>
+      <div class="about-card">
+        <div class="about-avatar">GV</div>
+        <div>
+          <div class="about-card-label">Currently Decoding</div>
+          <div class="about-card-value">Consumer Attention Economics</div>
+        </div>
+      </div>
+    </div>
+    <div class="about-right">
+      <p><strong>BrandGV</strong> is a brand strategy decoder and creative consultancy.</p>
+      <p>We believe every successful brand has patterns hidden behind its story, strategy, and customer experience. It is not about spending millions on advertising; it is about knowing what makes humans click.</p>
+      <p>Through thebrandGV framework, we observe everyday culture, decode abstract corporate structures, and create logical ideas that help ambitious founders communicate with absolute clarity and maximum impact.</p>
+
+      <div class="strategic-dims">
+        <div class="strategic-dims-label">STRATEGIC DIMENSIONS (TAP TAGS TO EXPAND)</div>
+        <div class="dims-tabs">
+          <div class="dim-tab active" onclick="switchDim('observer',this)"><span class="dim-icon">🔍</span> Observer</div>
+          <div class="dim-tab" onclick="switchDim('thinker',this)"><span class="dim-icon">💡</span> Thinker</div>
+          <div class="dim-tab" onclick="switchDim('strategist',this)"><span class="dim-icon">🎯</span> Strategist</div>
+          <div class="dim-tab" onclick="switchDim('creator',this)"><span class="dim-icon">🔥</span> Creator</div>
+          <div class="dim-tab" onclick="switchDim('impact',this)"><span class="dim-icon">⚡</span> Impact Builder</div>
+        </div>
+        <div id="dim-observer" class="dim-panel active">
+          <div class="dim-panel-label">OBSERVER CORE PHILOSOPHY</div>
+          <p>Scanning culture, behavioral patterns, and design details that standard marketing agencies overlook.</p>
+        </div>
+        <div id="dim-thinker" class="dim-panel">
+          <div class="dim-panel-label">THINKER CORE PHILOSOPHY</div>
+          <p>Connecting disparate ideas across industries to find the non-obvious pattern that gives brands their strategic edge.</p>
+        </div>
+        <div id="dim-strategist" class="dim-panel">
+          <div class="dim-panel-label">STRATEGIST CORE PHILOSOPHY</div>
+          <p>Converting insights into crisp, executable frameworks — not decks nobody reads, but directions teams actually follow.</p>
+        </div>
+        <div id="dim-creator" class="dim-panel">
+          <div class="dim-panel-label">CREATOR CORE PHILOSOPHY</div>
+          <p>Producing original media and editorial content that demonstrates brand thinking in real time, publicly.</p>
+        </div>
+        <div id="dim-impact" class="dim-panel">
+          <div class="dim-panel-label">IMPACT BUILDER CORE PHILOSOPHY</div>
+          <p>Measuring success by market movement and founder clarity — not by deliverable count or hours billed.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CAPABILITIES -->
+<section id="capabilities">
+  <div style="max-width:1300px;margin:0 auto;">
+    <div class="section-eyebrow">CAPABILITIES</div>
+    <h2 class="section-h2">Building brands with clarity.</h2>
+    <p class="section-sub">No agency bloat. No complex buzzwords. Just razor-sharp decoding and strategic alignment to build lasting market impact.</p>
+
+    <div class="services-list">
+      <div class="service-item anim-service">
+        <div class="service-header">
+          <div class="service-title-row">
+            <span class="service-num">01</span>
+            <span class="service-name">Brand Strategy</span>
+          </div>
+          <div class="service-tags">
+            <span class="service-tag">POSITIONING</span>
+            <span class="service-tag">RESEARCH</span>
+            <span class="service-tag">GROWTH DIRECTION</span>
+          </div>
+        </div>
+        <div class="service-body">
+          <div class="service-outcome">
+            <div class="service-outcome-label">TARGET STRATEGIC OUTCOME</div>
+            <p>A crisp, singular strategic core document defining your brand's unique category box, target psychology, and primary market hook.</p>
+          </div>
+          <div class="service-components">
+            <div class="service-components-label">ANALYTIC COMPONENTS</div>
+            <ul>
+              <li>Competitor Gap Analysis</li>
+              <li>Target Audience Archetyping</li>
+              <li>Growth Roadmapping</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="service-item anim-service">
+        <div class="service-header">
+          <div class="service-title-row">
+            <span class="service-num">02</span>
+            <span class="service-name">Brand Identity</span>
+          </div>
+          <div class="service-tags">
+            <span class="service-tag">STORYTELLING</span>
+            <span class="service-tag">MESSAGING</span>
+            <span class="service-tag">EXPERIENCE</span>
+          </div>
+        </div>
+        <div class="service-body">
+          <div class="service-outcome">
+            <div class="service-outcome-label">TARGET STRATEGIC OUTCOME</div>
+            <p>An editorial verbal identity and messaging blueprint. The exact words, tags, and story hooks that prompt emotional customer attachment.</p>
+          </div>
+          <div class="service-components">
+            <div class="service-components-label">ANALYTIC COMPONENTS</div>
+            <ul>
+              <li>Tagline &amp; Narrative Crafting</li>
+              <li>Brand Voice Architecture</li>
+              <li>Customer Touchpoint Engineering</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="service-item anim-service">
+        <div class="service-header">
+          <div class="service-title-row">
+            <span class="service-num">03</span>
+            <span class="service-name">Digital Growth</span>
+          </div>
+          <div class="service-tags">
+            <span class="service-tag">CONTENT</span>
+            <span class="service-tag">CAMPAIGNS</span>
+            <span class="service-tag">PERFORMANCE MARKETING</span>
+          </div>
+        </div>
+        <div class="service-body">
+          <div class="service-outcome">
+            <div class="service-outcome-label">TARGET STRATEGIC OUTCOME</div>
+            <p>Organic and paid distribution strategies. Constructing high-retention content systems to acquire premium attention without wasting ad money.</p>
+          </div>
+          <div class="service-components">
+            <div class="service-components-label">ANALYTIC COMPONENTS</div>
+            <ul>
+              <li>Social Content Matrix</li>
+              <li>Campaign Copywriting Systems</li>
+              <li>Sustainable Acquisition Funnels</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="service-item active anim-service" style="border-color:rgba(124,92,252,0.5);">
+        <div class="service-header">
+          <div class="service-title-row">
+            <span class="service-num">04</span>
+            <span class="service-name">Brand Consulting</span>
+          </div>
+          <div class="service-tags">
+            <span class="service-tag">FOUNDERS ADVISING</span>
+            <span class="service-tag">IDEA TRANSFORMATION</span>
+            <span class="service-tag">CATEGORY FIXES</span>
+          </div>
+        </div>
+        <div class="service-body">
+          <div class="service-outcome">
+            <div class="service-outcome-label">TARGET STRATEGIC OUTCOME</div>
+            <p>Strategic 1-on-1 diagnostics for founders and board directors. Breaking down current brand roadblocks, giving immediate fixes, and mapping future paths.</p>
+          </div>
+          <div class="service-components">
+            <div class="service-components-label">ANALYTIC COMPONENTS</div>
+            <ul>
+              <li>1-on-1 Action Workshops</li>
+              <li>Marketing Audit Sessions</li>
+              <li>Pitch Styling &amp; Narratives</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="faq-grid">
+    <div>
+      <div class="section-eyebrow">FREQUENTLY DECODED</div>
+      <h2 class="section-h2" style="font-size:clamp(28px,4vw,44px);">Common Queries</h2>
+      <p class="section-sub">Answering strategic questions regarding cooperation formats, underlying philosophies, and decoding execution cycles.</p>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">
+          What is the primary methodology behind the BrandGV framework?
+          <span class="faq-chevron">▾</span>
+        </div>
+        <div class="faq-a">The BrandGV framework is built on three pillars — Observe, Decode, and Create Impact. We study cultural signals and behavioral data, decode the underlying patterns that made certain brands succeed, and then apply those insights to craft clear, emotionally resonant brand strategies for our clients.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">
+          How does the strategic consultancy collaborate with founders?
+          <span class="faq-chevron">▾</span>
+        </div>
+        <div class="faq-a">We work directly and intimately — no junior account managers passing messages. Every engagement starts with a deep diagnostic session where we understand the founder's vision, current blockers, and market position. From there we co-build a strategic roadmap with clear, immediate action steps.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">
+          Which industries do you typically decode or advise?
+          <span class="faq-chevron">▾</span>
+        </div>
+        <div class="faq-a">Our framework is industry-agnostic — good brand strategy principles apply universally. We've worked across consumer products, D2C brands, SaaS, personal brands, media companies, and professional services. The methodology adapts; the rigor doesn't.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">
+          Can I submit a brand objective directly online?
+          <span class="faq-chevron">▾</span>
+        </div>
+        <div class="faq-a">Yes — use the "Decode Your Brand" button to share your brand challenge or strategic objective. We review every submission personally and respond within 48 hours with an initial assessment and next steps for engagement.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- THOUGHTS -->
+<section id="thoughts">
+  <div class="thoughts-header">
+    <div class="section-eyebrow">DECODING LOGS</div>
+    <h2 class="section-h2">Thoughts &amp; Decoded Logics.</h2>
+    <p class="section-sub">Direct essays on marketing culture, brand design psychology, and strategic observations from the desk of BrandGV.</p>
+  </div>
+  <div class="posts-list" id="posts-container"></div>
+  <div style="text-align:center;margin-top:40px;" id="view-more-wrap">
+    <a href="blog.html" class="view-more-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:8px;">VIEW MORE THOUGHTS ▾</a>
+  </div>
+  <div id="no-results" style="display:none;text-align:center;padding:40px 0;color:var(--text-muted);font-size:15px;">
+    No posts match your search. Try a different keyword.
+  </div>
+</section>
+
+<!-- CTA BAND -->
+<div class="cta-band" id="contact">
+  <h2 class="anim-cta-heading">Observe. Decode. <span>Create Impact.</span></h2>
+  <div class="anim-cta-btn">
+    <a href="#" onclick="openContact(event)" class="btn-cta-band">Let's Decode Your Brand →</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-main">
+    <div>
+      <img src="logo-main-light.png" alt="thebrandGV" style="height:88px;width:auto;display:block;">
+      <div class="footer-search" style="margin-top:20px;">
+        <span class="footer-search-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
+        <input type="text" placeholder="Search thoughts..." oninput="filterBlogs(this.value)">
+      </div>
+    </div>
+    <div class="footer-links">
+      <a href="#home">HOME</a>
+      <a href="#about">ABOUT</a>
+      <a href="#shows">SHOWS</a>
+      <a href="blog.html">THOUGHTS</a>
+    </div>
+    <div class="footer-social">
+      <a href="https://www.instagram.com/thebrandgv" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+      </a>
+      <a href="https://www.linkedin.com/in/gokulvaas/" target="_blank" rel="noopener" aria-label="LinkedIn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="3"/><line x1="7" y1="11" x2="7" y2="17"/><line x1="7" y1="7" x2="7" y2="8"/><path d="M11 17v-6m0 0c0-1.5 5-1.5 5 0v6"/></svg>
+      </a>
+      <a href="https://www.youtube.com/channel/UCJzKuE6m9IgKJYxSURDXOmQ" target="_blank" rel="noopener" aria-label="YouTube">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="3"/><polygon points="10,8 16,12 10,16" fill="currentColor" stroke="none"/></svg>
+      </a>
+      <a href="mailto:hello@thebrandgv.com" aria-label="Email">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="3"/><polyline points="2,4 12,14 22,4"/></svg>
+      </a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 thebrandGV</div>
+    <button class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+      BACK TO TOP <div class="back-to-top-icon">↑</div>
+    </button>
+    <div class="footer-credit">Strategized by BrandGV</div>
+  </div>
+</footer>
+
+<!-- CONTACT FORM MODAL -->
+<div class="contact-overlay" id="contact-modal" onclick="handleContactOverlay(event)">
+  <div class="contact-modal" id="contact-modal-box">
+    <button class="contact-modal-close" onclick="closeContact()">✕</button>
+
+    <!-- Form view -->
+    <div id="cf-form-view">
+      <div class="contact-modal-header">
+        <div class="contact-modal-eyebrow">LET'S WORK TOGETHER</div>
+        <h2 class="contact-modal-title">Decode Your Brand.<br>Build Real Impact.</h2>
+        <p class="contact-modal-sub">Tell GV about your brand challenge and he'll get back to you within 48 hours with a strategic assessment.</p>
+      </div>
+      <div class="contact-modal-body">
+        <div class="cf-row">
+          <div class="cf-group">
+            <label class="cf-label">Your Name</label>
+            <input type="text" class="cf-input" id="cf-name" placeholder="Full name">
+          </div>
+          <div class="cf-group">
+            <label class="cf-label">Email Address</label>
+            <input type="email" class="cf-input" id="cf-email" placeholder="your@email.com">
+          </div>
+        </div>
+        <div class="cf-row">
+          <div class="cf-group">
+            <label class="cf-label">Brand / Company</label>
+            <input type="text" class="cf-input" id="cf-brand" placeholder="Your brand name">
+          </div>
+          <div class="cf-group">
+            <label class="cf-label">Service Needed</label>
+            <select class="cf-select" id="cf-service">
+              <option value="">Select a service...</option>
+              <option value="Brand Strategy">Brand Strategy</option>
+              <option value="Brand Identity">Brand Identity</option>
+              <option value="Digital Growth">Digital Growth</option>
+              <option value="Brand Consulting">Brand Consulting (1-on-1)</option>
+              <option value="Not sure">Not sure yet</option>
+            </select>
+          </div>
+        </div>
+        <div class="cf-group">
+          <label class="cf-label">Your Brand Challenge</label>
+          <textarea class="cf-textarea" id="cf-message" placeholder="Describe your current brand bottleneck, goal, or what you'd like decoded. The more specific, the better."></textarea>
+        </div>
+        <button class="cf-submit" onclick="submitContact()">Send to GV →</button>
+      </div>
+    </div>
+
+    <!-- Success view -->
+    <div id="cf-success-view" class="cf-success">
+      <div class="cf-success-icon">✓</div>
+      <h3>Message Sent!</h3>
+      <p>GV has received your brand challenge. Expect a strategic response within 48 hours.</p>
+    </div>
+  </div>
+</div>
+
+<!-- BLOG MODAL -->
+<div class="blog-modal-overlay" id="blog-modal" onclick="closeBlogModal(event)">
+  <div class="blog-modal">
+    <button class="blog-modal-close" onclick="closeBlogModalDirect()">✕</button>
+    <div class="post-meta" id="modal-meta"></div>
+    <h2 class="blog-modal-title" id="modal-title"></h2>
+    <div class="blog-modal-divider"></div>
+    <div class="blog-modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+  // ── CONTACT MODAL ──
+  function openContact(e) {
+    if (e) e.preventDefault();
+    document.getElementById('cf-form-view').style.display = 'block';
+    document.getElementById('cf-success-view').style.display = 'none';
+    document.getElementById('contact-modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeContact() {
+    document.getElementById('contact-modal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function handleContactOverlay(e) {
+    if (e.target === document.getElementById('contact-modal')) closeContact();
+  }
+  function submitContact() {
+    const name = document.getElementById('cf-name').value.trim();
+    const email = document.getElementById('cf-email').value.trim();
+    const message = document.getElementById('cf-message').value.trim();
+    if (!name || !email || !message) {
+      alert('Please fill in your name, email, and brand challenge before sending.');
+      return;
+    }
+    // Build mailto link with form data
+    const service = document.getElementById('cf-service').value;
+    const brand = document.getElementById('cf-brand').value.trim();
+    const subject = encodeURIComponent(`Brand Inquiry from ${name}${brand ? ' — ' + brand : ''}`);
+    const body = encodeURIComponent(
+      `Name: ${name}\nEmail: ${email}\nBrand: ${brand || 'N/A'}\nService: ${service || 'N/A'}\n\nChallenge:\n${message}`
+    );
+    window.location.href = `mailto:hello@thebrandgv.com?subject=${subject}&body=${body}`;
+    // Show success
+    document.getElementById('cf-form-view').style.display = 'none';
+    document.getElementById('cf-success-view').style.display = 'block';
+    // Reset fields
+    ['cf-name','cf-email','cf-brand','cf-message'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('cf-service').value = '';
+  }
+
+  // ── BLOG DATA ──
+  const BLOGS_PER_PAGE = 3;
+  let currentPage = 1;
+  let activeQuery = '';
+
+  const allBlogs = [
+    {
+      cat: 'BRAND VOICE', date: 'June 2026', read: '3 min read',
+      title: "Why the Nike Swoosh hasn't changed, but their copy did",
+      excerpt: "Nike's brand is worth billions not because of rubber sole formulas, but because of their deliberate transition from physical specifications to an emotional state of mind.",
+      body: `
+        <p>In 1988, Nike's advertising team made a decision that would define the next four decades of brand communication. They stopped talking about shoes.</p>
+        <h4>From Product to Principle</h4>
+        <p>The original Nike copy was functional: "Cushioned midsole. Durable outsole. Breathable upper." Perfectly descriptive. Completely forgettable. Then came three words that changed everything: <em>Just Do It.</em></p>
+        <blockquote>"It is not about the shoe. It is about what the shoe allows you to become."</blockquote>
+        <p>The Swoosh never changed — it didn't need to. What changed was the story attached to it. The visual identity remained a simple checkmark, but the brand repositioned from a product manufacturer to a philosophy of human potential.</p>
+        <h4>The Strategic Mechanics</h4>
+        <p>Nike decoded something most brands get wrong: customers don't buy products, they buy the version of themselves they believe the product will help them become. Every Nike ad since 1988 has sold aspiration, not specification. The Swoosh became the mark of that aspiration — stable, timeless, and instantly recognisable across every culture on earth.</p>
+        <p>The lesson for founders: your visual identity can be fixed. Your verbal identity must evolve with your customer's dreams. Lock the logo. Free the language.</p>
+      `
+    },
+    {
+      cat: 'STRATEGY', date: 'May 2026', read: '4 min read',
+      title: "The Apple of Coffee: How Blue Bottle engineered premium obsession",
+      excerpt: "How a humble garage slow-drip experiment charged double coffee-giant prices by engineering sensory rituals and minimalist design friction.",
+      body: `
+        <p>In 2002, James Freeman started roasting coffee in a 186-square-foot Oakland garage. By 2017, Nestlé acquired a majority stake at a valuation north of $700 million. The coffee wasn't magic. The strategy was.</p>
+        <h4>Engineering Friction as a Feature</h4>
+        <p>Blue Bottle's first masterstroke was counter-intuitive: they made buying coffee slower. While Starbucks optimised for speed — mobile order, drive-through, scan-and-go — Blue Bottle introduced pour-over bars where baristas took four minutes per cup and explained exactly what they were doing.</p>
+        <blockquote>Friction, when deliberate, signals quality. Waiting becomes anticipation. Anticipation becomes desire.</blockquote>
+        <h4>Minimalist Design as Market Positioning</h4>
+        <p>Their stores stripped everything back: white walls, simple wooden counters, no cluttered menu boards. The visual language communicated "we have nothing to hide" — a direct contrast to the sensory overload of mass coffee chains. This wasn't aesthetic preference. It was strategic positioning.</p>
+        <p>By reducing visual noise, Blue Bottle directed all attention to the coffee itself, making the product the hero of every interaction. Premium pricing followed naturally: when the environment signals craft, customers accept craft pricing.</p>
+        <h4>The Ritual Layer</h4>
+        <p>Every Blue Bottle interaction follows a ritual. The same vocabulary ("bright," "clean," "complex"), the same white ceramic cups, the same unhurried pace. Rituals create belonging. Belonging justifies premium. Premium funds expansion. Expansion maintains exclusivity. It is a flywheel few brands ever manage to build.</p>
+      `
+    },
+    {
+      cat: 'FUTURE OF DESIGN', date: 'April 2026', read: '3 min read',
+      title: "AI can write copy, but it can't feel nostalgia: the future of strategic direction",
+      excerpt: "Why outstanding creative direction in a post-AI world depends on irrational, lived human memories that algorithms cannot mathematically compute.",
+      body: `
+        <p>Every major advertising agency is now running AI copy tools in parallel with human creative teams. The output is technically proficient, grammatically clean, and strategically hollow. Here's why.</p>
+        <h4>What AI Actually Does</h4>
+        <p>Large language models are extraordinarily good at pattern recognition and synthesis. They can identify that successful fast-food advertising uses "craveable" language, warmth cues, and sensory specificity. They can generate 500 variants of that pattern in minutes. What they cannot do is remember the first time they tasted something and felt like everything was going to be okay.</p>
+        <blockquote>Nostalgia is not a sentiment. It is a neurological event — the collision of memory, identity, and longing. No model trained on text has experienced it.</blockquote>
+        <h4>The Human Advantage</h4>
+        <p>The best strategic creative directors have always worked from autobiography first. They pull from the specific — a particular Saturday morning, a specific smell, a precise texture of light — and then generalise outward to the universal. This specificity is what makes the work feel true rather than constructed.</p>
+        <p>AI works in reverse: it generalises from the universal, then tries to add specificity. The result is technically correct but emotionally approximate. Audiences feel the difference even when they cannot name it.</p>
+        <h4>The New Creative Stack</h4>
+        <p>The future isn't AI replacing creative directors. It is creative directors who understand AI using it to handle the generative volume — variations, adaptations, localisation — while reserving their human irreplaceability for the originating idea. The brief. The insight. The irrational, autobiographical leap that transforms a product feature into a cultural feeling.</p>
+      `
+    },
+    {
+      cat: 'BRAND STRATEGY', date: 'March 2026', read: '5 min read',
+      title: "Why most D2C brands die at ₹10 crore revenue",
+      excerpt: "The strategy that gets a brand to ₹10 crore is precisely the strategy that prevents it from reaching ₹100 crore. Here's the structural reason.",
+      body: `
+        <p>Indian D2C has produced hundreds of brands that hit ₹10 crore in annual revenue within 18 months of launch. Most of them plateau. Many of them die. The reason is almost never the product.</p>
+        <h4>The Founder-as-Brand Trap</h4>
+        <p>Phase one D2C growth in India is almost entirely driven by founder-led content. The founder's Instagram, the founder's authenticity, the founder's story. This works brilliantly until it doesn't — the day the founder gets tired, or unavailable, or simply too expensive to produce content at the volume the algorithm demands.</p>
+        <blockquote>You haven't built a brand. You've built a personal media channel with a product attached.</blockquote>
+        <h4>What a Real Brand Does Differently</h4>
+        <p>Brands that cross ₹100 crore have systematised their voice. The founder's perspective has been distilled into a brand framework that any content creator, any agency, any new hire can execute. The brand speaks consistently whether the founder is present or not.</p>
+        <p>This requires doing the uncomfortable strategic work early: articulating the brand's point of view on the world, not just on its product category. What does your brand believe that is slightly controversial? What would your brand refuse to do even if it were profitable? These questions feel abstract until the day you need 50 people to communicate consistently without you in the room.</p>
+      `
+    },
+    {
+      cat: 'CONSUMER PSYCHOLOGY', date: 'February 2026', read: '4 min read',
+      title: "The scarcity code: why limited editions print money",
+      excerpt: "Artificial scarcity is the oldest trick in luxury. Understanding its psychological mechanics reveals why it works even when consumers know they're being manipulated.",
+      body: `
+        <p>Supreme drops. Sneaker releases. NFT mints. Limited-edition whisky. The mechanism is identical across categories: manufacture scarcity, manufacture desire. The fascinating part is that it works even when consumers are fully aware of the manipulation.</p>
+        <h4>Reactance Theory in Brand Strategy</h4>
+        <p>Psychological reactance is the human tendency to want things more intensely when our freedom to obtain them is restricted. This isn't a quirk — it's a feature of human cognition shaped over millions of years of resource competition. Brands that understand this don't just use scarcity tactically. They architect their entire release strategy around it.</p>
+        <blockquote>The queue is not a failure of distribution. The queue is the product. Standing in it signals membership.</blockquote>
+        <h4>The Community Multiplier</h4>
+        <p>Scarcity alone creates desire. Scarcity plus community creates culture. When not obtaining something becomes a shared experience of aspiration — when people bond over the miss as much as the hit — the brand has achieved something most marketing budgets cannot buy: genuine cultural relevance. The loss becomes a story people tell, and every story told is unpaid advertising.</p>
+      `
+    },
+    {
+      cat: 'BRAND VOICE', date: 'January 2026', read: '3 min read',
+      title: "Zomato's copy is a brand strategy masterclass hiding in plain sight",
+      excerpt: "Every Zomato notification is a micro-essay in brand voice. How one Indian tech company turned push alerts into personality and personality into defensible differentiation.",
+      body: `
+        <p>Most apps treat push notifications as a logistics problem: get information from server to eyeball as efficiently as possible. Zomato decided to treat them as a creative opportunity. The results redefined what brand voice means for Indian tech.</p>
+        <h4>The Anti-Corporate Voice</h4>
+        <p>Zomato's copy team operates from a simple brief: sound like no other company in India. Where competitors write "Your order has been placed successfully," Zomato writes "Your food is on its way. Try not to watch from the window like a golden retriever." The specificity of that image — the golden retriever — is not accidental. It signals that a human being who finds things funny actually wrote this.</p>
+        <h4>Why This Is Strategy, Not Just Tone</h4>
+        <p>Brand voice is defensible in a way that features are not. Swiggy can copy Zomato's delivery radius. They cannot copy Zomato's accumulated body of comedic brand content without looking derivative. Voice, when executed consistently over years, becomes proprietary. It cannot be reverse-engineered by a competitor's product team.</p>
+        <blockquote>The best brand voices don't describe the company. They embody a person you'd genuinely want to know.</blockquote>
+        <p>For founders building in competitive categories: your product will be copied within 18 months. Your voice, if you commit to it early and execute it obsessively, may take a decade to replicate — and even then it will always look like an imitation.</p>
+      `
+    }
+  ];
+
+  // ── RENDER BLOGS ──
+  function renderBlogs(blogs, append = false) {
+    const container = document.getElementById('posts-container');
+    if (!append) container.innerHTML = '';
+    blogs.forEach((b, i) => {
+      const globalIdx = allBlogs.indexOf(b);
+      container.innerHTML += `
+        <div class="post-card" data-idx="${globalIdx}">
+          <div class="post-meta">
+            <span class="post-cat">${b.cat}</span>
+            <span class="post-meta-dot">•</span>
+            <span class="post-date">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              ${b.date}
+            </span>
+            <span class="post-meta-dot">•</span>
+            <span class="post-read">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              ${b.read}
+            </span>
+          </div>
+          <h3 class="post-h3">${b.title}</h3>
+          <p class="post-excerpt">${b.excerpt}</p>
+          <a href="#" class="post-link" onclick="openBlog(event,${globalIdx})">↳ READ STRATEGIC BREAKDOWN →</a>
+        </div>`;
+    });
+  }
+
+  function getFilteredBlogs() {
+    if (!activeQuery) return allBlogs;
+    const q = activeQuery.toLowerCase();
+    return allBlogs.filter(b =>
+      b.title.toLowerCase().includes(q) ||
+      b.excerpt.toLowerCase().includes(q) ||
+      b.cat.toLowerCase().includes(q)
+    );
+  }
+
+  function refreshView(resetPage = true) {
+    if (resetPage) currentPage = 1;
+    const filtered = getFilteredBlogs();
+    const visible = filtered.slice(0, currentPage * BLOGS_PER_PAGE);
+    renderBlogs(visible);
+    const noResults = document.getElementById('no-results');
+    const viewMoreWrap = document.getElementById('view-more-wrap');
+    noResults.style.display = filtered.length === 0 ? 'block' : 'none';
+    viewMoreWrap.style.display = filtered.length > visible.length ? 'block' : 'none';
+  }
+
+  function loadMoreBlogs() {
+    currentPage++;
+    refreshView(false);
+  }
+
+  function filterBlogs(q) {
+    activeQuery = q;
+    // sync both search inputs
+    document.querySelectorAll('input[type="text"]').forEach(inp => inp.value = q);
+    refreshView(true);
+    if (q) document.getElementById('thoughts').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ── BLOG MODAL ──
+  function openBlog(e, idx) {
+    e.preventDefault();
+    const b = allBlogs[idx];
+    document.getElementById('modal-meta').innerHTML = `
+      <span class="post-cat">${b.cat}</span>
+      <span class="post-meta-dot" style="margin:0 8px">•</span>
+      <span class="post-date" style="color:var(--text-muted);font-size:13px;">${b.date}</span>
+      <span class="post-meta-dot" style="margin:0 8px">•</span>
+      <span class="post-read" style="color:var(--text-muted);font-size:13px;">${b.read}</span>`;
+    document.getElementById('modal-title').textContent = b.title;
+    document.getElementById('modal-body').innerHTML = b.body;
+    document.getElementById('blog-modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeBlogModal(e) {
+    if (e.target === document.getElementById('blog-modal')) closeBlogModalDirect();
+  }
+  function closeBlogModalDirect() {
+    document.getElementById('blog-modal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeBlogModalDirect(); closeContact(); } });
+
+  // ── INIT ──
+  refreshView();
+
+  // ── SCROLL PROGRESS BAR ──
+  const scrollBar = document.getElementById('scroll-progress');
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    scrollBar.style.width = pct + '%';
+  }, { passive: true });
+
+  // ── ACTIVE NAV ──
+  const sections = document.querySelectorAll('section[id], div[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+    navLinks.forEach(a => {
+      a.classList.remove('active');
+      if (a.getAttribute('href') === '#' + current) a.classList.add('active');
+    });
+  });
+
+  // ── FAQ ──
+  function toggleFaq(item) {
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  }
+
+  // ═══════════════════════════════════════
+  // ── ANIMATION ENGINE ──
+  // ═══════════════════════════════════════
+
+  function animateEl(el, delay, duration, ease) {
+    el.style.transition = `opacity ${duration}s ${ease} ${delay}s, transform ${duration}s ${ease} ${delay}s`;
+    el.classList.add('anim-in');
+  }
+
+  function observeGroup(selector, duration, ease, staggerBase, staggerCap) {
+    const els = document.querySelectorAll(selector);
+    const io = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        const idx = [...els].indexOf(el);
+        const delay = Math.min(idx * staggerBase, staggerCap !== undefined ? staggerCap : 99);
+        animateEl(el, delay, duration, ease);
+        obs.unobserve(el);
+      });
+    }, { threshold: 0.12 });
+    els.forEach(el => io.observe(el));
+  }
+
+  // Hero — fire immediately on load
+  window.addEventListener('load', () => {
+    const heroText = document.querySelector('.anim-hero-text');
+    const heroPhoto = document.querySelector('.anim-hero-photo');
+    if (heroText) animateEl(heroText, 0.1, 0.8, 'cubic-bezier(0.16,1,0.3,1)');
+    if (heroPhoto) animateEl(heroPhoto, 0.3, 1.0, 'cubic-bezier(0.16,1,0.3,1)');
+  });
+
+  // Show cards — staggered 0.15s each
+  observeGroup('.anim-card', 0.6, 'cubic-bezier(0.16,1,0.3,1)', 0.15, 0.6);
+
+  // Steps (philosophy pillars)
+  observeGroup('.anim-step', 0.6, 'cubic-bezier(0.16,1,0.3,1)', 0.15, 0.45);
+
+  // Services
+  observeGroup('.anim-service', 0.5, 'cubic-bezier(0.16,1,0.3,1)', 0.1, 0.4);
+
+  // Blog post cards
+  observeGroup('.anim-post', 0.5, 'cubic-bezier(0.16,1,0.3,1)', 0.1, 0.2);
+
+  // CTA
+  observeGroup('.anim-cta-heading', 0.8, 'cubic-bezier(0.16,1,0.3,1)', 0, 0);
+  observeGroup('.anim-cta-btn', 0.6, 'cubic-bezier(0.16,1,0.3,1)', 0, 0);
+  // CTA btn delayed after heading
+  (() => {
+    const btn = document.querySelector('.anim-cta-btn');
+    if (!btn) return;
+    const io = new IntersectionObserver(entries => {
+      if (!entries[0].isIntersecting) return;
+      animateEl(btn, 0.35, 0.6, 'cubic-bezier(0.16,1,0.3,1)');
+      io.disconnect();
+    }, { threshold: 0.2 });
+    io.observe(btn);
+  })();
+
+  // Also animate post cards rendered dynamically
+  function animatePosts() {
+    document.querySelectorAll('.post-card').forEach((el, i) => {
+      if (!el.classList.contains('anim-post')) {
+        el.classList.add('anim-post');
+        setTimeout(() => animateEl(el, Math.min(i * 0.1, 0.2), 0.5, 'cubic-bezier(0.16,1,0.3,1)'), 50);
+      }
+    });
+  }
+
+  // ═══════════════════════════════════════
+  // ── 3D CARD TILT (Show Cards) ──
+  // ═══════════════════════════════════════
+  document.querySelectorAll('.show-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+      const rotateX = ((y - cy) / cy) * -12;
+      const rotateY = ((x - cx) / cx) * 12;
+      card.style.transition = 'transform 0.1s ease';
+      card.style.transform = `scale(1.04) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transition = 'transform 0.5s cubic-bezier(0.16,1,0.3,1)';
+      card.style.transform = 'scale(1) rotateX(0deg) rotateY(0deg)';
+    });
+  });
+
+  // ═══════════════════════════════════════
+  // ── DIM TAB fade transition ──
+  // ═══════════════════════════════════════
+  const _origSwitchDim = switchDim;
+  // override with fade
+  function switchDim(name, tab) {
+    document.querySelectorAll('.dim-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const panels = document.querySelectorAll('.dim-panel');
+    panels.forEach(p => { p.style.opacity = '0'; });
+    setTimeout(() => {
+      panels.forEach(p => { p.classList.remove('active'); p.style.display = 'none'; p.style.opacity = '0'; });
+      const target = document.getElementById('dim-' + name);
+      if (target) {
+        target.style.display = 'block';
+        target.classList.add('active');
+        requestAnimationFrame(() => { target.style.opacity = '1'; });
+      }
+    }, 150);
+  }
+</script>
+</body>
+</html>

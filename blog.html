@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thoughts & Decoded Logics — thebrandGV</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="shortcut icon" href="favicon.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --dark:#0a0e1a;--light-bg:#f4f5f8;--white:#fff;
+  --purple:#7c5cfc;--cyan:#4fd1e8;--purple-light:#9b7ffd;
+  --text-dark:#0f1629;--text-muted:#6b7280;--text-muted-light:#8b95a8;
+  --border:rgba(255,255,255,0.08);--border-light:#e5e7eb;
+}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',sans-serif;background:var(--white);color:var(--text-dark);line-height:1.6;overflow-x:hidden;}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;background:var(--white);border-bottom:1px solid var(--border-light);padding:0 48px;height:88px;display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{text-decoration:none;}
+.nav-logo img{height:72px;width:auto;display:block;}
+.nav-right{display:flex;align-items:center;gap:20px;}
+.nav-search-wrap{position:relative;display:flex;align-items:center;}
+.nav-search-wrap svg{position:absolute;left:12px;color:var(--text-muted-light);}
+.nav-search-wrap input{background:var(--light-bg);border:1px solid var(--border-light);border-radius:100px;padding:9px 16px 9px 38px;font-size:13px;color:var(--text-dark);outline:none;width:220px;font-family:'Inter',sans-serif;transition:border-color .2s,width .3s;}
+.nav-search-wrap input:focus{border-color:var(--purple);width:280px;}
+.nav-search-wrap input::placeholder{color:var(--text-muted-light);}
+.btn-home{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--text-dark);text-decoration:none;border:1px solid var(--border-light);border-radius:100px;padding:9px 20px;transition:border-color .2s;}
+.btn-home:hover{border-color:var(--text-dark);}
+.btn-admin{display:inline-flex;align-items:center;gap:6px;background:var(--dark);color:var(--white);border:none;border-radius:100px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .2s;}
+.btn-admin:hover{opacity:.85;}
+
+/* ── HERO ── */
+.blog-hero{background:var(--dark);padding:156px 80px 80px;text-align:center;}
+.blog-hero-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--purple);margin-bottom:20px;}
+.blog-hero-eyebrow::before{content:'';width:8px;height:8px;background:var(--purple);border-radius:50%;display:block;}
+.blog-hero h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(36px,6vw,72px);font-weight:800;letter-spacing:-2px;color:var(--white);margin-bottom:16px;line-height:1.1;}
+.blog-hero p{font-size:16px;color:rgba(255,255,255,.5);max-width:520px;margin:0 auto 40px;line-height:1.7;}
+.monthly-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(124,92,252,.15);border:1px solid rgba(124,92,252,.3);border-radius:100px;padding:8px 20px;font-size:12px;font-weight:600;color:var(--purple);letter-spacing:.05em;}
+
+/* ── FILTER BAR ── */
+.filter-bar{background:var(--white);border-bottom:1px solid var(--border-light);padding:0 80px;display:flex;gap:0;overflow-x:auto;position:sticky;top:88px;z-index:99;}
+.filter-tab{padding:18px 24px;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:color .2s,border-color .2s;}
+.filter-tab:hover{color:var(--text-dark);}
+.filter-tab.active{color:var(--purple);border-color:var(--purple);}
+
+/* ── BLOG GRID ── */
+.blog-main{max-width:1100px;margin:0 auto;padding:60px 40px;}
+.blog-count{font-size:13px;color:var(--text-muted);margin-bottom:32px;display:flex;align-items:center;gap:8px;}
+.blog-count strong{color:var(--text-dark);}
+.month-group{margin-bottom:60px;}
+.month-label{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border-light);}
+.posts-grid{display:flex;flex-direction:column;gap:12px;}
+.post-card{background:var(--white);border:1px solid var(--border-light);border-radius:16px;padding:32px 36px;transition:border-color .2s,box-shadow .2s,transform .2s;cursor:pointer;}
+.post-card:hover{border-color:var(--purple);box-shadow:0 4px 24px rgba(124,92,252,.08);transform:translateY(-1px);}
+.post-meta{display:flex;align-items:center;gap:10px;margin-bottom:14px;font-size:12px;flex-wrap:wrap;}
+.post-cat{font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--purple);}
+.post-meta-dot{color:var(--text-muted-light);}
+.post-date,.post-read{color:var(--text-muted);display:flex;align-items:center;gap:4px;}
+.post-h3{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:var(--text-dark);letter-spacing:-.5px;margin-bottom:10px;line-height:1.3;}
+.post-excerpt{font-size:14px;color:var(--text-muted);line-height:1.65;margin-bottom:24px;}
+.post-link{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--purple);display:inline-flex;align-items:center;gap:6px;border-top:1px solid var(--border-light);padding-top:18px;width:100%;}
+.no-results{text-align:center;padding:80px 40px;color:var(--text-muted);}
+.no-results h3{font-size:20px;font-weight:700;color:var(--text-dark);margin-bottom:8px;}
+
+/* ── LOAD MORE ── */
+.load-more-wrap{text-align:center;padding:20px 0 60px;}
+.btn-load-more{background:var(--white);border:1px solid var(--border-light);border-radius:100px;padding:14px 32px;font-size:13px;font-weight:600;color:var(--text-dark);cursor:pointer;letter-spacing:.04em;text-transform:uppercase;transition:border-color .2s;}
+.btn-load-more:hover{border-color:var(--text-dark);}
+
+/* ── FULL READ OVERLAY ── */
+.read-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(10,14,26,.75);backdrop-filter:blur(8px);overflow-y:auto;padding:40px 24px;}
+.read-overlay.open{display:block;}
+.read-modal{background:var(--white);border-radius:20px;max-width:780px;margin:0 auto;position:relative;animation:modalIn .3s ease;}
+@keyframes modalIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.read-modal-header{background:var(--dark);border-radius:20px 20px 0 0;padding:52px 60px 44px;}
+.read-modal-close{position:absolute;top:20px;right:20px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);cursor:pointer;font-size:18px;color:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.read-modal-close:hover{background:rgba(255,255,255,.2);color:var(--white);}
+.read-modal-cat{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--purple);margin-bottom:16px;}
+.read-modal-title{font-family:'Space Grotesk',sans-serif;font-size:clamp(24px,4vw,36px);font-weight:800;letter-spacing:-1px;line-height:1.2;color:var(--white);margin-bottom:20px;}
+.read-modal-meta{display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,.45);}
+.read-modal-body{padding:48px 60px;}
+.read-modal-body p{font-size:16px;color:var(--text-dark);line-height:1.85;margin-bottom:20px;}
+.read-modal-body h4{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:var(--text-dark);margin:36px 0 14px;}
+.read-modal-body blockquote{border-left:3px solid var(--purple);padding:18px 24px;background:rgba(124,92,252,.04);border-radius:0 10px 10px 0;margin:28px 0;font-style:italic;color:var(--text-muted);font-size:15px;line-height:1.75;}
+.read-modal-footer{padding:0 60px 48px;border-top:1px solid var(--border-light);margin-top:8px;padding-top:28px;display:flex;justify-content:space-between;align-items:center;}
+.read-modal-footer-back{font-size:13px;font-weight:600;color:var(--purple);cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+
+/* ── ADMIN PANEL ── */
+.admin-overlay{display:none;position:fixed;inset:0;z-index:600;background:rgba(10,14,26,.85);backdrop-filter:blur(10px);overflow-y:auto;padding:40px 24px;}
+.admin-overlay.open{display:block;}
+.admin-panel{background:var(--white);border-radius:20px;max-width:860px;margin:0 auto;animation:modalIn .3s ease;}
+.admin-header{background:var(--dark);border-radius:20px 20px 0 0;padding:32px 48px;display:flex;align-items:center;justify-content:space-between;}
+.admin-header h2{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:var(--white);}
+.admin-header-sub{font-size:13px;color:rgba(255,255,255,.4);margin-top:4px;}
+.admin-close{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.1);border:none;cursor:pointer;font-size:18px;color:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.admin-close:hover{background:rgba(255,255,255,.2);color:var(--white);}
+.admin-body{padding:40px 48px;}
+.admin-tabs{display:flex;gap:0;border-bottom:1px solid var(--border-light);margin-bottom:36px;}
+.admin-tab{padding:12px 24px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--text-muted);transition:all .2s;}
+.admin-tab.active{color:var(--purple);border-color:var(--purple);}
+.form-group{margin-bottom:22px;}
+.form-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;display:block;}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--light-bg);border:1px solid var(--border-light);border-radius:10px;padding:12px 16px;font-size:14px;color:var(--text-dark);font-family:'Inter',sans-serif;outline:none;transition:border-color .2s;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--purple);background:var(--white);}
+.form-textarea{min-height:280px;resize:vertical;line-height:1.7;}
+.form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;cursor:pointer;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-hint{font-size:11px;color:var(--text-muted-light);margin-top:6px;}
+.btn-publish{background:linear-gradient(135deg,var(--purple),var(--cyan));color:var(--white);border:none;border-radius:100px;padding:14px 32px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-top:8px;letter-spacing:.02em;transition:opacity .2s;}
+.btn-publish:hover{opacity:.9;}
+.publish-success{display:none;background:rgba(79,209,232,.08);border:1px solid rgba(79,209,232,.3);border-radius:12px;padding:16px 20px;color:var(--cyan);font-size:14px;font-weight:600;text-align:center;margin-top:16px;}
+.publish-success.show{display:block;}
+
+/* ── MANAGE POSTS LIST ── */
+.manage-list{display:flex;flex-direction:column;gap:10px;}
+.manage-item{background:var(--light-bg);border:1px solid var(--border-light);border-radius:12px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.manage-item-info{flex:1;min-width:0;}
+.manage-item-title{font-size:14px;font-weight:600;color:var(--text-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.manage-item-meta{font-size:12px;color:var(--text-muted);margin-top:3px;}
+.manage-item-actions{display:flex;gap:8px;flex-shrink:0;}
+.btn-delete{background:#fff1f1;border:1px solid #fecaca;color:#dc2626;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-delete:hover{background:#fee2e2;}
+.empty-manage{text-align:center;padding:40px;color:var(--text-muted);font-size:14px;}
+
+/* ── FOOTER ── */
+footer{background:var(--dark);padding:48px 80px 28px;}
+.footer-inner{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:center;padding-bottom:32px;border-bottom:1px solid var(--border);margin-bottom:24px;}
+.footer-logo img{height:80px;width:auto;}
+.footer-search-wrap{position:relative;display:flex;align-items:center;}
+.footer-search-wrap svg{position:absolute;left:13px;color:rgba(255,255,255,.3);}
+.footer-search-wrap input{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:100px;padding:10px 16px 10px 40px;font-size:13px;color:var(--white);outline:none;width:260px;font-family:'Inter',sans-serif;transition:border-color .2s;}
+.footer-search-wrap input:focus{border-color:rgba(124,92,252,.5);}
+.footer-search-wrap input::placeholder{color:rgba(255,255,255,.3);}
+.footer-bottom{display:flex;justify-content:space-between;align-items:center;}
+.footer-copy{font-size:12px;color:rgba(255,255,255,.3);}
+.footer-back{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;transition:color .2s;}
+.footer-back:hover{color:var(--white);}
+.footer-back-icon{width:30px;height:30px;border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.footer-back a{color:inherit;text-decoration:none;display:flex;align-items:center;gap:8px;}
+
+/* ── LOGIN MODAL ── */
+.login-overlay{display:none;position:fixed;inset:0;z-index:700;background:rgba(10,14,26,.9);backdrop-filter:blur(12px);align-items:center;justify-content:center;}
+.login-overlay.open{display:flex;}
+.login-box{background:var(--white);border-radius:24px;width:100%;max-width:420px;overflow:hidden;animation:modalIn .3s ease;position:relative;}
+.login-box-header{background:var(--dark);padding:44px 44px 36px;text-align:center;}
+.login-box-header img{height:48px;margin:0 auto 24px;display:block;}
+.login-box-title{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:var(--white);margin-bottom:6px;}
+.login-box-sub{font-size:13px;color:rgba(255,255,255,.4);}
+.login-box-body{padding:36px 44px 40px;}
+.login-field{margin-bottom:18px;}
+.login-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;display:block;}
+.login-input-wrap{position:relative;display:flex;align-items:center;}
+.login-input-wrap svg{position:absolute;left:14px;color:var(--text-muted-light);}
+.login-input{width:100%;background:var(--light-bg);border:1.5px solid var(--border-light);border-radius:12px;padding:13px 16px 13px 42px;font-size:14px;color:var(--text-dark);font-family:'Inter',sans-serif;outline:none;transition:border-color .2s;}
+.login-input:focus{border-color:var(--purple);background:var(--white);}
+.login-input.error{border-color:#ef4444;background:#fff5f5;}
+.login-error{display:none;background:#fff1f1;border:1px solid #fecaca;border-radius:10px;padding:12px 16px;font-size:13px;color:#dc2626;font-weight:500;margin-bottom:16px;text-align:center;}
+.login-error.show{display:block;}
+.btn-login{width:100%;background:linear-gradient(135deg,var(--purple),var(--cyan));color:var(--white);border:none;border-radius:100px;padding:15px;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.02em;transition:opacity .2s;margin-top:4px;}
+.btn-login:hover{opacity:.9;}
+.login-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.08);border:none;cursor:pointer;font-size:16px;color:rgba(255,255,255,.6);display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.login-close:hover{background:rgba(255,255,255,.15);color:var(--white);}
+.login-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:var(--white);margin:0 auto 16px;}
+/* logged-in state of the button */
+.btn-admin.logged-in{background:linear-gradient(135deg,var(--purple),var(--cyan));}
+.btn-logout{display:inline-flex;align-items:center;gap:6px;background:transparent;color:var(--text-muted);border:1px solid var(--border-light);border-radius:100px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-logout:hover{border-color:#ef4444;color:#ef4444;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  nav{padding:0 20px;}
+  .blog-hero{padding:120px 24px 60px;}
+  .filter-bar{padding:0 20px;}
+  .blog-main{padding:40px 20px;}
+  .post-card{padding:24px 20px;}
+  .read-modal-header{padding:40px 28px 32px;}
+  .read-modal-body{padding:32px 28px;}
+  .read-modal-footer{padding:0 28px 36px;padding-top:20px;}
+  .admin-body{padding:28px 24px;}
+  .form-row{grid-template-columns:1fr;}
+  footer{padding:40px 24px 24px;}
+  .footer-inner{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">
+    <img src="logo-main-dark.png" alt="thebrandGV">
+  </a>
+  <div class="nav-right">
+    <div class="nav-search-wrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search blogs..." id="search-input" oninput="handleSearch(this.value)">
+    </div>
+    <a href="index.html" class="btn-home">← Back to Home</a>
+    <button class="btn-admin" id="login-btn" onclick="handleLoginBtn()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Login
+    </button>
+    <button class="btn-logout" id="logout-btn" style="display:none;" onclick="logoutUser()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Logout
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="blog-hero">
+  <div class="blog-hero-eyebrow">DECODING LOGS</div>
+  <h1>Thoughts &amp; Decoded Logics.</h1>
+  <p>Direct essays on marketing culture, brand design psychology, and strategic observations from the desk of BrandGV.</p>
+  <div class="monthly-badge">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    5 new posts every month
+  </div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar" id="filter-bar">
+  <div class="filter-tab active" onclick="setFilter('ALL',this)">All Posts</div>
+  <div class="filter-tab" onclick="setFilter('BRAND VOICE',this)">Brand Voice</div>
+  <div class="filter-tab" onclick="setFilter('STRATEGY',this)">Strategy</div>
+  <div class="filter-tab" onclick="setFilter('FUTURE OF DESIGN',this)">Future of Design</div>
+  <div class="filter-tab" onclick="setFilter('CONSUMER PSYCHOLOGY',this)">Consumer Psychology</div>
+  <div class="filter-tab" onclick="setFilter('BRAND STRATEGY',this)">Brand Strategy</div>
+</div>
+
+<!-- MAIN BLOG LIST -->
+<main class="blog-main">
+  <div class="blog-count" id="blog-count"></div>
+  <div id="posts-container"></div>
+  <div class="no-results" id="no-results" style="display:none;">
+    <h3>No posts found</h3>
+    <p>Try a different search term or category.</p>
+  </div>
+  <div class="load-more-wrap" id="load-more-wrap" style="display:none;">
+    <button class="btn-load-more" onclick="loadMore()">Load More Posts ▾</button>
+  </div>
+</main>
+
+<!-- FULL READ OVERLAY -->
+<div class="read-overlay" id="read-overlay" onclick="handleOverlayClick(event)">
+  <div class="read-modal" id="read-modal">
+    <button class="read-modal-close" onclick="closeRead()">✕</button>
+    <div class="read-modal-header">
+      <div class="read-modal-cat" id="rm-cat"></div>
+      <h2 class="read-modal-title" id="rm-title"></h2>
+      <div class="read-modal-meta" id="rm-meta"></div>
+    </div>
+    <div class="read-modal-body" id="rm-body"></div>
+    <div class="read-modal-footer">
+      <span class="read-modal-footer-back" onclick="closeRead()">← Back to all posts</span>
+      <span style="font-size:12px;color:var(--text-muted);" id="rm-date-label"></span>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="login-overlay" id="login-overlay" onclick="handleLoginOverlayClick(event)">
+  <div class="login-box" id="login-box">
+    <button class="login-close" onclick="closeLogin()">✕</button>
+    <div class="login-box-header">
+      <img src="logo-main-light.png" alt="thebrandGV">
+      <div class="login-box-title">Admin Access</div>
+      <div class="login-box-sub">Sign in to manage your blog posts</div>
+    </div>
+    <div class="login-box-body">
+      <div class="login-error" id="login-error">Incorrect User ID or password. Please try again.</div>
+      <div class="login-field">
+        <label class="login-label">User ID</label>
+        <div class="login-input-wrap">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          <input type="text" class="login-input" id="login-userid" placeholder="Enter your User ID" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+      </div>
+      <div class="login-field">
+        <label class="login-label">Password</label>
+        <div class="login-input-wrap">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="password" class="login-input" id="login-password" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+      </div>
+      <button class="btn-login" onclick="doLogin()">Sign In →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="admin-overlay" id="admin-overlay" onclick="handleAdminOverlayClick(event)">
+  <div class="admin-panel" id="admin-panel">
+    <div class="admin-header">
+      <div>
+        <h2>Blog Admin</h2>
+        <div class="admin-header-sub">Add, manage &amp; schedule posts · 5 per month</div>
+      </div>
+      <button class="admin-close" onclick="closeAdmin()">✕</button>
+    </div>
+    <div class="admin-body">
+      <div class="admin-tabs">
+        <div class="admin-tab active" onclick="switchAdminTab('add',this)">+ New Post</div>
+        <div class="admin-tab" onclick="switchAdminTab('manage',this)">Manage Posts</div>
+        <div class="admin-tab" onclick="switchAdminTab('stats',this)">Monthly Stats</div>
+      </div>
+
+      <!-- ADD POST TAB -->
+      <div id="tab-add">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select class="form-select" id="f-cat">
+              <option value="BRAND VOICE">Brand Voice</option>
+              <option value="STRATEGY">Strategy</option>
+              <option value="FUTURE OF DESIGN">Future of Design</option>
+              <option value="CONSUMER PSYCHOLOGY">Consumer Psychology</option>
+              <option value="BRAND STRATEGY">Brand Strategy</option>
+              <option value="CREATIVE">Creative</option>
+              <option value="CULTURE">Culture</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Read Time</label>
+            <select class="form-select" id="f-read">
+              <option value="2 min read">2 min read</option>
+              <option value="3 min read" selected>3 min read</option>
+              <option value="4 min read">4 min read</option>
+              <option value="5 min read">5 min read</option>
+              <option value="6 min read">6 min read</option>
+              <option value="8 min read">8 min read</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Title</label>
+          <input type="text" class="form-input" id="f-title" placeholder="Write a compelling, specific title...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Excerpt (shown on card)</label>
+          <input type="text" class="form-input" id="f-excerpt" placeholder="One punchy sentence that makes people want to read more...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Full Blog Content</label>
+          <textarea class="form-textarea" id="f-body" placeholder="Write your full blog post here...
+
+Use these formatting markers:
+## Heading — creates a section heading
+&gt; Quote — creates a styled blockquote
+(blank line between paragraphs)
+
+Example:
+The opening paragraph of your essay goes here.
+
+## The First Section Heading
+
+A paragraph under that heading.
+
+&gt; An impactful quote or key insight goes here.
+
+Another paragraph continues the argument."></textarea>
+          <div class="form-hint">Use ## for headings, &gt; for blockquotes, blank lines for paragraph breaks.</div>
+        </div>
+        <button class="btn-publish" onclick="publishPost()">Publish Post →</button>
+        <div class="publish-success" id="publish-success">✓ Post published successfully! It's now live on the blog.</div>
+      </div>
+
+      <!-- MANAGE TAB -->
+      <div id="tab-manage" style="display:none;">
+        <div class="manage-list" id="manage-list"></div>
+      </div>
+
+      <!-- STATS TAB -->
+      <div id="tab-stats" style="display:none;" id="tab-stats">
+        <div id="stats-content"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">
+      <img src="logo-main-light.png" alt="thebrandGV">
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <a href="https://www.instagram.com/thebrandgv" target="_blank" rel="noopener" aria-label="Instagram" style="width:36px;height:36px;border:1px solid rgba(255,255,255,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.5);text-decoration:none;transition:all .2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.4)';this.style.color='white'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='rgba(255,255,255,0.5)'">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="https://www.linkedin.com/in/gokulvaas/" target="_blank" rel="noopener" aria-label="LinkedIn" style="width:36px;height:36px;border:1px solid rgba(255,255,255,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.5);text-decoration:none;transition:all .2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.4)';this.style.color='white'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='rgba(255,255,255,0.5)'">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="3"/><line x1="7" y1="11" x2="7" y2="17"/><line x1="7" y1="7" x2="7" y2="8"/><path d="M11 17v-6m0 0c0-1.5 5-1.5 5 0v6"/></svg>
+        </a>
+        <a href="https://www.youtube.com/channel/UCJzKuE6m9IgKJYxSURDXOmQ" target="_blank" rel="noopener" aria-label="YouTube" style="width:36px;height:36px;border:1px solid rgba(255,255,255,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.5);text-decoration:none;transition:all .2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.4)';this.style.color='white'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='rgba(255,255,255,0.5)'">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="3"/><polygon points="10,8 16,12 10,16" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="mailto:hello@thebrandgv.com" aria-label="Email" style="width:36px;height:36px;border:1px solid rgba(255,255,255,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.5);text-decoration:none;transition:all .2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.4)';this.style.color='white'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='rgba(255,255,255,0.5)'">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="3"/><polyline points="2,4 12,14 22,4"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="footer-search-wrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search blogs..." oninput="handleSearch(this.value)">
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 thebrandGV</div>
+    <button class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+      BACK TO TOP
+      <div class="footer-back-icon">↑</div>
+    </button>
+    <div class="footer-copy">Strategized by BrandGV</div>
+  </div>
+</footer>
+
+<script>
+// ── CREDENTIALS ──
+const VALID_USER = 'Gokul';
+const VALID_PASS = 'Nitta@8123877';
+const SESSION_KEY = 'thebrandgv_session';
+
+// ── SESSION ──
+function isLoggedIn() {
+  return sessionStorage.getItem(SESSION_KEY) === 'authenticated';
+}
+function setSession() {
+  sessionStorage.setItem(SESSION_KEY, 'authenticated');
+}
+function clearSession() {
+  sessionStorage.removeItem(SESSION_KEY);
+}
+
+function updateNavState() {
+  const loginBtn = document.getElementById('login-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+  if (isLoggedIn()) {
+    loginBtn.style.display = 'none';
+    logoutBtn.style.display = 'inline-flex';
+  } else {
+    loginBtn.style.display = 'inline-flex';
+    logoutBtn.style.display = 'none';
+  }
+}
+
+// ── LOGIN FLOW ──
+function handleLoginBtn() {
+  if (isLoggedIn()) {
+    openAdmin();
+  } else {
+    openLogin();
+  }
+}
+
+function openLogin() {
+  document.getElementById('login-userid').value = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-error').classList.remove('show');
+  document.querySelectorAll('.login-input').forEach(i => i.classList.remove('error'));
+  document.getElementById('login-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('login-userid').focus(), 100);
+}
+
+function closeLogin() {
+  document.getElementById('login-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function handleLoginOverlayClick(e) {
+  if (e.target === document.getElementById('login-overlay')) closeLogin();
+}
+
+function doLogin() {
+  const uid = document.getElementById('login-userid').value.trim();
+  const pwd = document.getElementById('login-password').value;
+  const errorEl = document.getElementById('login-error');
+  const inputs = document.querySelectorAll('.login-input');
+
+  if (uid === VALID_USER && pwd === VALID_PASS) {
+    errorEl.classList.remove('show');
+    inputs.forEach(i => i.classList.remove('error'));
+    setSession();
+    updateNavState();
+    closeLogin();
+    setTimeout(() => openAdmin(), 200);
+  } else {
+    errorEl.classList.add('show');
+    inputs.forEach(i => i.classList.add('error'));
+    document.getElementById('login-password').value = '';
+    document.getElementById('login-password').focus();
+    // shake animation
+    const box = document.getElementById('login-box');
+    box.style.animation = 'none';
+    box.style.transform = 'translateX(-8px)';
+    setTimeout(() => { box.style.transform = 'translateX(8px)'; }, 80);
+    setTimeout(() => { box.style.transform = 'translateX(-5px)'; }, 160);
+    setTimeout(() => { box.style.transform = 'translateX(0)'; }, 240);
+  }
+}
+
+function logoutUser() {
+  if (!confirm('Sign out of the admin panel?')) return;
+  clearSession();
+  updateNavState();
+}
+
+// ── STORAGE ──
+const STORAGE_KEY = 'thebrandgv_blogs_v1';
+const PER_PAGE = 5;
+let visibleCount = PER_PAGE;
+let activeFilter = 'ALL';
+let activeQuery = '';
+
+const defaultBlogs = [
+  {
+    id:1, cat:'BRAND VOICE', date:'June 2026', month:'June 2026', read:'3 min read',
+    title:"Why the Nike Swoosh hasn't changed, but their copy did",
+    excerpt:"Nike's brand is worth billions not because of rubber sole formulas, but because of their deliberate transition from physical specifications to an emotional state of mind.",
+    body:`In 1988, Nike's advertising team made a decision that would define the next four decades of brand communication. They stopped talking about shoes.
+
+## From Product to Principle
+
+The original Nike copy was functional: "Cushioned midsole. Durable outsole. Breathable upper." Perfectly descriptive. Completely forgettable. Then came three words that changed everything: Just Do It.
+
+> "It is not about the shoe. It is about what the shoe allows you to become."
+
+The Swoosh never changed — it didn't need to. What changed was the story attached to it. The visual identity remained a simple checkmark, but the brand repositioned from a product manufacturer to a philosophy of human potential.
+
+## The Strategic Mechanics
+
+Nike decoded something most brands get wrong: customers don't buy products, they buy the version of themselves they believe the product will help them become. Every Nike ad since 1988 has sold aspiration, not specification.
+
+The lesson for founders: your visual identity can be fixed. Your verbal identity must evolve with your customer's dreams. Lock the logo. Free the language.`
+  },
+  {
+    id:2, cat:'STRATEGY', date:'June 2026', month:'June 2026', read:'4 min read',
+    title:"The Apple of Coffee: How Blue Bottle engineered premium obsession",
+    excerpt:"How a humble garage slow-drip experiment charged double coffee-giant prices by engineering sensory rituals and minimalist design friction.",
+    body:`In 2002, James Freeman started roasting coffee in a 186-square-foot Oakland garage. By 2017, Nestlé acquired a majority stake at a valuation north of $700 million. The coffee wasn't magic. The strategy was.
+
+## Engineering Friction as a Feature
+
+Blue Bottle's first masterstroke was counter-intuitive: they made buying coffee slower. While Starbucks optimised for speed, Blue Bottle introduced pour-over bars where baristas took four minutes per cup and explained exactly what they were doing.
+
+> Friction, when deliberate, signals quality. Waiting becomes anticipation. Anticipation becomes desire.
+
+## Minimalist Design as Market Positioning
+
+Their stores stripped everything back: white walls, simple wooden counters, no cluttered menu boards. The visual language communicated "we have nothing to hide."
+
+By reducing visual noise, Blue Bottle directed all attention to the coffee itself. Premium pricing followed naturally: when the environment signals craft, customers accept craft pricing.
+
+## The Ritual Layer
+
+Every Blue Bottle interaction follows a ritual. The same vocabulary, the same white ceramic cups, the same unhurried pace. Rituals create belonging. Belonging justifies premium. It is a flywheel few brands ever manage to build.`
+  },
+  {
+    id:3, cat:'FUTURE OF DESIGN', date:'May 2026', month:'May 2026', read:'3 min read',
+    title:"AI can write copy, but it can't feel nostalgia: the future of strategic direction",
+    excerpt:"Why outstanding creative direction in a post-AI world depends on irrational, lived human memories that algorithms cannot mathematically compute.",
+    body:`Every major advertising agency is now running AI copy tools in parallel with human creative teams. The output is technically proficient, grammatically clean, and strategically hollow.
+
+## What AI Actually Does
+
+Large language models are extraordinarily good at pattern recognition and synthesis. They can identify that successful fast-food advertising uses "craveable" language and sensory specificity. They can generate 500 variants of that pattern in minutes.
+
+> Nostalgia is not a sentiment. It is a neurological event — the collision of memory, identity, and longing. No model trained on text has experienced it.
+
+## The Human Advantage
+
+The best strategic creative directors pull from the specific — a particular Saturday morning, a specific smell, a precise texture of light — and then generalise outward to the universal. AI works in reverse. The result is technically correct but emotionally approximate.
+
+## The New Creative Stack
+
+The future isn't AI replacing creative directors. It is creative directors who understand AI using it to handle generative volume while reserving their human irreplaceability for the originating idea — the irrational, autobiographical leap that transforms a product feature into a cultural feeling.`
+  },
+  {
+    id:4, cat:'BRAND STRATEGY', date:'May 2026', month:'May 2026', read:'5 min read',
+    title:"Why most D2C brands die at ₹10 crore revenue",
+    excerpt:"The strategy that gets a brand to ₹10 crore is precisely the strategy that prevents it from reaching ₹100 crore. Here's the structural reason.",
+    body:`Indian D2C has produced hundreds of brands that hit ₹10 crore in annual revenue within 18 months of launch. Most of them plateau. Many of them die. The reason is almost never the product.
+
+## The Founder-as-Brand Trap
+
+Phase one D2C growth in India is almost entirely driven by founder-led content. The founder's Instagram, the founder's authenticity, the founder's story. This works brilliantly until the day the founder gets tired, unavailable, or simply can't produce at the volume the algorithm demands.
+
+> You haven't built a brand. You've built a personal media channel with a product attached.
+
+## What a Real Brand Does Differently
+
+Brands that cross ₹100 crore have systematised their voice. The founder's perspective has been distilled into a brand framework that any content creator, any agency, any new hire can execute.
+
+This requires doing the uncomfortable strategic work early: articulating the brand's point of view on the world. What does your brand believe that is slightly controversial? What would your brand refuse to do even if it were profitable? These questions feel abstract until the day you need 50 people to communicate consistently without you in the room.`
+  },
+  {
+    id:5, cat:'CONSUMER PSYCHOLOGY', date:'April 2026', month:'April 2026', read:'4 min read',
+    title:"The scarcity code: why limited editions print money",
+    excerpt:"Artificial scarcity is the oldest trick in luxury. Understanding its psychological mechanics reveals why it works even when consumers know they're being manipulated.",
+    body:`Supreme drops. Sneaker releases. NFT mints. Limited-edition whisky. The mechanism is identical across categories: manufacture scarcity, manufacture desire.
+
+## Reactance Theory in Brand Strategy
+
+Psychological reactance is the human tendency to want things more intensely when our freedom to obtain them is restricted. This isn't a quirk — it's a feature of human cognition shaped over millions of years of resource competition.
+
+> The queue is not a failure of distribution. The queue is the product. Standing in it signals membership.
+
+## The Community Multiplier
+
+Scarcity alone creates desire. Scarcity plus community creates culture. When not obtaining something becomes a shared experience of aspiration — when people bond over the miss as much as the hit — the brand has achieved genuine cultural relevance. The loss becomes a story people tell, and every story told is unpaid advertising.`
+  },
+  {
+    id:6, cat:'BRAND VOICE', date:'April 2026', month:'April 2026', read:'3 min read',
+    title:"Zomato's copy is a brand strategy masterclass hiding in plain sight",
+    excerpt:"Every Zomato notification is a micro-essay in brand voice. How one Indian tech company turned push alerts into personality and personality into defensible differentiation.",
+    body:`Most apps treat push notifications as a logistics problem: get information from server to eyeball as efficiently as possible. Zomato decided to treat them as a creative opportunity.
+
+## The Anti-Corporate Voice
+
+Zomato's copy team operates from a simple brief: sound like no other company in India. Where competitors write "Your order has been placed successfully," Zomato writes "Your food is on its way. Try not to watch from the window like a golden retriever." The specificity of that image is not accidental. It signals that a human being who finds things funny actually wrote this.
+
+## Why This Is Strategy, Not Just Tone
+
+Brand voice is defensible in a way that features are not. Swiggy can copy Zomato's delivery radius. They cannot copy Zomato's accumulated body of comedic brand content without looking derivative.
+
+> The best brand voices don't describe the company. They embody a person you'd genuinely want to know.
+
+Voice, when executed consistently over years, becomes proprietary. For founders: your product will be copied within 18 months. Your voice, if you commit to it early and execute it obsessively, may take a decade to replicate.`
+  }
+];
+
+function getBlogs() {
+  try { const r = localStorage.getItem(STORAGE_KEY); if (r) return JSON.parse(r); } catch(e) {}
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultBlogs));
+  return defaultBlogs;
+}
+function saveBlogs(b) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(b)); } catch(e) {} }
+function getNextId() { const b = getBlogs(); return b.length ? Math.max(...b.map(x=>x.id))+1 : 1; }
+function getCurrentMonth() { return new Date().toLocaleString('en-US',{month:'long',year:'numeric'}); }
+function countThisMonth() { const m = getCurrentMonth(); return getBlogs().filter(b=>b.month===m).length; }
+
+// ── PARSE BODY ──
+function parseBody(raw) {
+  return (raw||'').split('\n').map(line => {
+    line = line.trim();
+    if (!line) return '';
+    if (line.startsWith('## ')) return `<h4>${line.slice(3)}</h4>`;
+    if (line.startsWith('> ')) return `<blockquote>${line.slice(2)}</blockquote>`;
+    return `<p>${line}</p>`;
+  }).join('');
+}
+
+function getFiltered() {
+  let blogs = getBlogs();
+  if (activeFilter !== 'ALL') blogs = blogs.filter(b => b.cat === activeFilter);
+  if (activeQuery) {
+    const q = activeQuery.toLowerCase();
+    blogs = blogs.filter(b =>
+      b.title.toLowerCase().includes(q) ||
+      b.excerpt.toLowerCase().includes(q) ||
+      b.cat.toLowerCase().includes(q) ||
+      (b.body||'').toLowerCase().includes(q)
+    );
+  }
+  return blogs;
+}
+
+function renderPosts() {
+  const filtered = getFiltered();
+  const container = document.getElementById('posts-container');
+  const noResults = document.getElementById('no-results');
+  const loadMoreWrap = document.getElementById('load-more-wrap');
+  const countEl = document.getElementById('blog-count');
+  container.innerHTML = '';
+  noResults.style.display = 'none';
+  const total = filtered.length;
+  countEl.innerHTML = `Showing <strong>${Math.min(visibleCount,total)}</strong> of <strong>${total}</strong> posts`;
+  if (!total) { noResults.style.display = 'block'; loadMoreWrap.style.display = 'none'; return; }
+  const visible = filtered.slice(0, visibleCount);
+  const groups = {};
+  visible.forEach(b => { const m = b.month||b.date||'Archived'; if(!groups[m]) groups[m]=[]; groups[m].push(b); });
+  Object.entries(groups).forEach(([month, posts]) => {
+    const g = document.createElement('div');
+    g.className = 'month-group';
+    g.innerHTML = `<div class="month-label">${month}</div><div class="posts-grid">${
+      posts.map(b => `
+        <div class="post-card" onclick="openRead(${b.id})">
+          <div class="post-meta">
+            <span class="post-cat">${b.cat}</span>
+            <span class="post-meta-dot">•</span>
+            <span class="post-date">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              ${b.date}
+            </span>
+            <span class="post-meta-dot">•</span>
+            <span class="post-read">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              ${b.read}
+            </span>
+          </div>
+          <h3 class="post-h3">${b.title}</h3>
+          <p class="post-excerpt">${b.excerpt}</p>
+          <span class="post-link">↳ READ STRATEGIC BREAKDOWN →</span>
+        </div>`).join('')
+    }</div>`;
+    container.appendChild(g);
+  });
+  loadMoreWrap.style.display = total > visibleCount ? 'block' : 'none';
+}
+
+function setFilter(cat, el) {
+  activeFilter = cat; visibleCount = PER_PAGE;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderPosts();
+}
+
+function handleSearch(q) {
+  activeQuery = q; visibleCount = PER_PAGE;
+  document.querySelectorAll('input[type="text"]').forEach(i => i.value = q);
+  renderPosts();
+}
+
+function loadMore() { visibleCount += PER_PAGE; renderPosts(); }
+
+// ── FULL READ ──
+function openRead(id) {
+  const blog = getBlogs().find(b => b.id === id);
+  if (!blog) return;
+  document.getElementById('rm-cat').textContent = blog.cat;
+  document.getElementById('rm-title').textContent = blog.title;
+  document.getElementById('rm-meta').innerHTML = `<span>${blog.date}</span><span style="margin:0 8px">•</span><span>${blog.read}</span>`;
+  document.getElementById('rm-body').innerHTML = parseBody(blog.body||'');
+  document.getElementById('rm-date-label').textContent = blog.month||blog.date;
+  document.getElementById('read-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('read-overlay').scrollTop = 0;
+}
+function closeRead() { document.getElementById('read-overlay').classList.remove('open'); document.body.style.overflow = ''; }
+function handleOverlayClick(e) { if(e.target===document.getElementById('read-overlay')) closeRead(); }
+
+// ── ADMIN (requires login) ──
+function openAdmin() {
+  if (!isLoggedIn()) { openLogin(); return; }
+  renderManageList(); renderStats();
+  document.getElementById('admin-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeAdmin() { document.getElementById('admin-overlay').classList.remove('open'); document.body.style.overflow = ''; }
+function handleAdminOverlayClick(e) { if(e.target===document.getElementById('admin-overlay')) closeAdmin(); }
+function switchAdminTab(tab, el) {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-add').style.display = tab==='add' ? 'block' : 'none';
+  document.getElementById('tab-manage').style.display = tab==='manage' ? 'block' : 'none';
+  document.getElementById('tab-stats').style.display = tab==='stats' ? 'block' : 'none';
+  if(tab==='manage') renderManageList();
+  if(tab==='stats') renderStats();
+}
+
+function publishPost() {
+  if (!isLoggedIn()) { closeAdmin(); openLogin(); return; }
+  const title = document.getElementById('f-title').value.trim();
+  const excerpt = document.getElementById('f-excerpt').value.trim();
+  const body = document.getElementById('f-body').value.trim();
+  if (!title||!excerpt||!body) { alert('Please fill in all fields before publishing.'); return; }
+  const thisMonth = getCurrentMonth();
+  if (countThisMonth() >= 5) { alert(`You've already published 5 posts this month (${thisMonth}). Monthly limit is 5 posts.`); return; }
+  const now = new Date();
+  const dateStr = now.toLocaleString('en-US',{month:'long',year:'numeric'});
+  const newPost = { id:getNextId(), cat:document.getElementById('f-cat').value, date:dateStr, month:dateStr, read:document.getElementById('f-read').value, title, excerpt, body };
+  const blogs = getBlogs(); blogs.unshift(newPost); saveBlogs(blogs);
+  document.getElementById('f-title').value=''; document.getElementById('f-excerpt').value=''; document.getElementById('f-body').value='';
+  const s = document.getElementById('publish-success'); s.classList.add('show'); setTimeout(()=>s.classList.remove('show'),4000);
+  renderPosts(); renderManageList();
+}
+
+function deletePost(id) {
+  if (!isLoggedIn()) return;
+  if (!confirm('Delete this post? This cannot be undone.')) return;
+  saveBlogs(getBlogs().filter(b=>b.id!==id)); renderPosts(); renderManageList();
+}
+
+function renderManageList() {
+  const blogs = getBlogs(); const el = document.getElementById('manage-list');
+  if (!blogs.length) { el.innerHTML='<div class="empty-manage">No posts yet. Add your first post!</div>'; return; }
+  el.innerHTML = blogs.map(b=>`
+    <div class="manage-item">
+      <div class="manage-item-info">
+        <div class="manage-item-title">${b.title}</div>
+        <div class="manage-item-meta">${b.cat} · ${b.date} · ${b.read}</div>
+      </div>
+      <div class="manage-item-actions">
+        <button class="btn-delete" onclick="deletePost(${b.id})">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderStats() {
+  const blogs = getBlogs(); const months = {};
+  blogs.forEach(b => { const m=b.month||b.date||'Unknown'; months[m]=(months[m]||0)+1; });
+  const thisMonth=getCurrentMonth(); const thisCount=months[thisMonth]||0; const remaining=Math.max(0,5-thisCount);
+  document.getElementById('stats-content').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px;">
+      <div style="background:var(--light-bg);border-radius:12px;padding:20px;text-align:center;">
+        <div style="font-size:32px;font-weight:800;color:var(--purple);">${blogs.length}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;font-weight:600;letter-spacing:.05em;">TOTAL POSTS</div>
+      </div>
+      <div style="background:var(--light-bg);border-radius:12px;padding:20px;text-align:center;">
+        <div style="font-size:32px;font-weight:800;color:var(--purple);">${thisCount}/5</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;font-weight:600;letter-spacing:.05em;">THIS MONTH</div>
+      </div>
+      <div style="background:${remaining>0?'rgba(79,209,232,0.08)':'#fff1f1'};border-radius:12px;padding:20px;text-align:center;">
+        <div style="font-size:32px;font-weight:800;color:${remaining>0?'var(--cyan)':'#dc2626'};">${remaining}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;font-weight:600;letter-spacing:.05em;">SLOTS LEFT</div>
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;">Posts by Month</div>
+    ${Object.entries(months).map(([m,count])=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-light);">
+        <span style="font-size:14px;font-weight:500;color:var(--text-dark);">${m}</span>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:${count*20}px;height:6px;background:linear-gradient(90deg,var(--purple),var(--cyan));border-radius:3px;"></div>
+          <span style="font-size:13px;font-weight:700;color:var(--text-dark);min-width:16px;text-align:right;">${count}</span>
+        </div>
+      </div>`).join('')}`;
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') { closeRead(); closeAdmin(); closeLogin(); }
+});
+
+// ── INIT ──
+updateNavState();
+renderPosts();
+</script>
+</body>
+</html>
