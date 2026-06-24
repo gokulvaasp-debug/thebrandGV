@@ -173,18 +173,64 @@ footer{background:var(--dark);padding:48px 80px 28px;}
 
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
-  nav{padding:0 20px;}
-  .blog-hero{padding:120px 24px 60px;}
-  .filter-bar{padding:0 20px;}
-  .blog-main{padding:40px 20px;}
-  .post-card{padding:24px 20px;}
-  .read-modal-header{padding:40px 28px 32px;}
-  .read-modal-body{padding:32px 28px;}
-  .read-modal-footer{padding:0 28px 36px;padding-top:20px;}
-  .admin-body{padding:28px 24px;}
+  nav{padding:0 16px;height:72px;}
+  .nav-logo img{height:48px;}
+  .nav-right .nav-search-wrap{display:none;}
+  .btn-home{display:none;}
+  .btn-admin{font-size:12px;padding:8px 14px;}
+  #login-btn{font-size:12px;padding:8px 14px;}
+  #logout-btn{font-size:12px;padding:8px 12px;}
+
+  .blog-hero{padding:108px 20px 52px;}
+  .blog-hero h1{font-size:clamp(28px,9vw,48px);letter-spacing:-1.5px;}
+  .blog-hero p{font-size:14px;}
+  .monthly-badge{font-size:11px;padding:7px 16px;}
+
+  .filter-bar{padding:0 16px;top:72px;}
+  .filter-tab{padding:14px 16px;font-size:11px;}
+
+  .blog-main{padding:28px 16px;}
+  .blog-count{font-size:12px;}
+  .month-label{font-size:10px;}
+  .post-card{padding:20px 16px;}
+  .post-h3{font-size:18px;}
+  .post-excerpt{font-size:13px;}
+  .post-meta{font-size:11px;gap:6px;}
+
+  /* Read modal → bottom sheet on mobile */
+  .read-overlay{padding:0;align-items:flex-end;}
+  .read-modal{border-radius:20px 20px 0 0;max-width:100%;min-height:80vh;}
+  .read-modal-header{padding:32px 20px 24px;}
+  .read-modal-title{font-size:22px;}
+  .read-modal-body{padding:24px 20px;}
+  .read-modal-body p{font-size:15px;}
+  .read-modal-footer{padding:0 20px 32px;padding-top:16px;}
+
+  /* Admin panel */
+  .admin-panel{border-radius:20px 20px 0 0;margin-top:auto;}
+  .admin-overlay{align-items:flex-end;padding:0;}
+  .admin-header{padding:24px 20px;}
+  .admin-body{padding:20px 16px;}
+  .admin-header h2{font-size:20px;}
   .form-row{grid-template-columns:1fr;}
-  footer{padding:40px 24px 24px;}
-  .footer-inner{grid-template-columns:1fr;}
+  .form-group{margin-bottom:16px;}
+
+  /* Login modal */
+  .login-overlay{align-items:flex-end;}
+  .login-box{border-radius:20px 20px 0 0;max-width:100%;}
+  .login-box-header{padding:32px 28px 24px;}
+  .login-box-body{padding:24px 28px 32px;}
+
+  footer{padding:36px 16px 20px;}
+  .footer-inner{grid-template-columns:1fr;gap:24px;}
+  .footer-search-wrap input{width:100%;}
+  .footer-bottom{flex-direction:column;gap:12px;text-align:center;}
+}
+
+@media(max-width:400px){
+  .blog-hero h1{font-size:26px;}
+  .read-modal-title{font-size:18px;}
+  .admin-header h2{font-size:18px;}
 }
 </style>
 </head>

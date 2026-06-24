@@ -541,22 +541,208 @@
   }
 
   /* ── RESPONSIVE ── */
+  /* ══════════════════════════════════════════
+     RESPONSIVE — TABLET (max 1100px)
+  ══════════════════════════════════════════ */
   @media (max-width: 1100px) {
     .shows-grid { grid-template-columns: repeat(3, 1fr); }
-    .hero-inner { grid-template-columns: 1fr; }
+    .hero-inner { grid-template-columns: 1fr; max-width: 680px; }
     .hero-photo-wrap { display: none; }
+    .hero-h1 { font-size: 52px; }
+    .about-grid { grid-template-columns: 1fr; gap: 48px; }
+    .faq-grid { grid-template-columns: 1fr; gap: 40px; }
+    .service-body { grid-template-columns: 1fr; gap: 28px; }
   }
+
+  /* ══════════════════════════════════════════
+     RESPONSIVE — MOBILE (max 768px)
+  ══════════════════════════════════════════ */
   @media (max-width: 768px) {
-    nav { padding: 0 20px; }
+
+    /* ── NAV ── */
+    nav {
+      padding: 0 16px;
+      height: 64px;
+      position: fixed;
+    }
+    .nav-logo img { height: 48px; }
     .nav-links { display: none; }
-    #home, #shows, #about, #capabilities, #faq, #thoughts, .cta-band, footer { padding-left: 24px; padding-right: 24px; }
-    .shows-grid { grid-template-columns: repeat(2, 1fr); }
-    .about-grid, .faq-grid { grid-template-columns: 1fr; }
-    .steps-grid { grid-template-columns: 1fr; }
-    .service-body { grid-template-columns: 1fr; }
+    .nav-search { display: none; }
+    .nav-cta { display: none; }
+
+    /* Mobile hamburger menu */
+    .mobile-menu-btn {
+      display: flex !important;
+      width: 40px; height: 40px;
+      align-items: center; justify-content: center;
+      background: none; border: 1px solid var(--border-light);
+      border-radius: 10px; cursor: pointer; color: var(--text-dark);
+      flex-shrink: 0;
+    }
+
+    /* Mobile nav drawer */
+    .mobile-nav {
+      display: flex !important;
+      position: fixed; top: 64px; left: 0; right: 0; bottom: 0;
+      background: var(--white); z-index: 99;
+      flex-direction: column; padding: 32px 24px 40px;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+      overflow-y: auto;
+    }
+    .mobile-nav.open { transform: translateX(0); }
+    .mobile-nav a {
+      font-size: 24px; font-weight: 700; color: var(--text-dark);
+      text-decoration: none; padding: 14px 0;
+      border-bottom: 1px solid var(--border-light);
+      font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.5px;
+    }
+    .mobile-nav a:hover { color: var(--purple); }
+    .mobile-nav-cta {
+      margin-top: 28px;
+      background: var(--dark); color: var(--white) !important;
+      border-radius: 100px; padding: 16px 24px !important;
+      text-align: center; border-bottom: none !important;
+      font-size: 16px !important;
+    }
+    .mobile-nav-search {
+      margin-top: 20px; display: flex; align-items: center;
+      gap: 10px; background: var(--light-bg); border: 1px solid var(--border-light);
+      border-radius: 100px; padding: 12px 18px;
+    }
+    .mobile-nav-search input {
+      flex: 1; background: none; border: none; outline: none;
+      font-size: 15px; color: var(--text-dark); font-family: 'Inter', sans-serif;
+    }
+    .mobile-nav-search input::placeholder { color: var(--text-muted-light); }
+    .mobile-social {
+      display: flex; gap: 12px; margin-top: 28px;
+    }
+    .mobile-social a {
+      width: 44px; height: 44px; border-radius: 50%;
+      border: 1px solid var(--border-light) !important;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); padding: 0 !important;
+      font-size: 0 !important;
+    }
+
+    /* ── HERO ── */
+    #home {
+      padding: 100px 20px 60px;
+      min-height: auto;
+    }
+    .hero-inner { gap: 32px; }
+    .hero-brand-logo { height: 38px; margin-bottom: 20px; }
+    .hero-eyebrow { font-size: 10px; margin-bottom: 20px; }
+    .hero-h1 { font-size: clamp(36px, 9vw, 52px); letter-spacing: -1.5px; margin-bottom: 16px; }
+    .hero-sub { font-size: 15px; margin-bottom: 32px; }
+    .hero-actions { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .btn-primary { font-size: 14px; padding: 14px 24px; width: 100%; justify-content: center; }
+    .social-cluster { width: 100%; justify-content: center; }
+    .hero-scroll { bottom: 16px; }
+
+    /* ── DARK BAND / STEPS ── */
+    .dark-band { padding: 48px 20px; }
+    .steps-grid { grid-template-columns: 1fr; gap: 0; }
+    .step {
+      padding: 28px 0 !important;
+      border-right: none !important;
+      border-bottom: 1px solid var(--border);
+    }
+    .step:last-child { border-bottom: none; }
+    .step-icon { position: static; width: 36px; height: 36px; margin-bottom: 12px; }
+    .step-desc { max-width: 100%; }
+
+    /* ── SHOWS ── */
+    #shows { padding: 60px 20px; }
+    .shows-meta { flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 28px; }
+    .tap-hint { font-size: 11px; }
+    .section-h2 { font-size: clamp(28px, 8vw, 44px); letter-spacing: -1px; }
+    .section-sub { font-size: 14px; margin-bottom: 36px; }
+    .shows-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .show-card-logo { max-height: 90px; }
+
+    /* ── ABOUT ── */
+    #about { padding: 60px 20px; }
+    .about-grid { grid-template-columns: 1fr; gap: 36px; }
+    .about-h2 { font-size: clamp(32px, 9vw, 52px); letter-spacing: -1.5px; }
+    .about-right p { font-size: 15px; }
+    .dims-tabs { gap: 6px; }
+    .dim-tab { font-size: 12px; padding: 7px 12px; }
+
+    /* ── CAPABILITIES ── */
+    #capabilities { padding: 60px 20px; }
+    .service-item { padding: 24px 20px; }
     .service-header { flex-direction: column; align-items: flex-start; gap: 12px; }
-    .footer-main { grid-template-columns: 1fr; gap: 24px; }
-    .footer-links { flex-wrap: wrap; gap: 16px; }
+    .service-tags { flex-wrap: wrap; }
+    .service-tag { font-size: 9px; padding: 5px 10px; }
+    .service-name { font-size: 20px; }
+    .service-body { grid-template-columns: 1fr; gap: 20px; padding-top: 20px; }
+    .service-outcome p, .service-components li { font-size: 13px; }
+
+    /* ── FAQ ── */
+    #faq { padding: 60px 20px; }
+    .faq-grid { grid-template-columns: 1fr; gap: 32px; }
+    .faq-q { font-size: 14px; padding: 16px 18px; }
+    .faq-a { padding: 0 18px; }
+    .faq-item.open .faq-a { padding: 0 18px 16px; }
+
+    /* ── THOUGHTS ── */
+    #thoughts { padding: 60px 20px; }
+    .thoughts-header { margin-bottom: 32px; }
+    .post-card { padding: 22px 18px; }
+    .post-h3 { font-size: 18px; }
+    .post-excerpt { font-size: 13px; }
+    .view-more-btn { font-size: 12px; padding: 12px 22px; }
+
+    /* ── CTA BAND ── */
+    .cta-band { padding: 64px 20px; }
+    .cta-band h2 { font-size: clamp(28px, 8vw, 48px); letter-spacing: -1.5px; margin-bottom: 28px; }
+    .btn-cta-band { font-size: 14px; padding: 14px 28px; }
+
+    /* ── FOOTER ── */
+    footer { padding: 40px 20px 24px; }
+    .footer-main { grid-template-columns: 1fr; gap: 28px; }
+    .footer-main img { height: 52px; }
+    .footer-links { flex-wrap: wrap; gap: 12px; }
+    .footer-links a { font-size: 12px; }
+    .footer-social { gap: 8px; }
+    .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
+
+    /* ── CONTACT DRAWER → full screen on mobile ── */
+    .contact-overlay { justify-content: center; padding: 0; align-items: flex-end; }
+    .contact-modal {
+      border-radius: 20px 20px 0 0 !important;
+      max-width: 100% !important;
+      height: 92vh;
+      transform: translateY(100%) !important;
+    }
+    .contact-overlay.open .contact-modal { transform: translateY(0) !important; }
+    .contact-modal-header { padding: 32px 24px 24px; }
+    .contact-modal-title { font-size: 22px; }
+    .contact-modal-body { padding: 24px 24px 32px; }
+    .cf-row { grid-template-columns: 1fr; gap: 0; }
+    .cf-submit { font-size: 14px; padding: 14px; }
+
+    /* ── BLOG MODAL ── */
+    .blog-modal { padding: 32px 24px; }
+    .blog-modal-title { font-size: 22px; }
+
+    /* ── NO-SCROLL NAV SEARCH hide ── */
+    .nav-search { display: none; }
+  }
+
+  /* ══════════════════════════════════════════
+     RESPONSIVE — SMALL MOBILE (max 400px)
+  ══════════════════════════════════════════ */
+  @media (max-width: 400px) {
+    .hero-h1 { font-size: 32px; }
+    .shows-grid { grid-template-columns: 1fr; }
+    .show-card { padding: 18px 14px; }
+    .btn-primary { font-size: 13px; }
   }
 </style>
 </head>
@@ -575,13 +761,47 @@
     <a href="blog.html">THOUGHTS</a>
     <a href="#contact">CONTACT</a>
   </div>
-  <div class="nav-search">
-    <span class="nav-search-icon">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    </span>
-    <input type="text" placeholder="Search thoughts..." id="nav-search-input" oninput="filterBlogs(this.value)">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div class="nav-search">
+      <span class="nav-search-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </span>
+      <input type="text" placeholder="Search thoughts..." id="nav-search-input" oninput="filterBlogs(this.value)">
+    </div>
+    <a href="#" onclick="openContact(event)" class="nav-cta">WORK WITH GV →</a>
+    <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleMobileMenu()" style="display:none;" aria-label="Menu">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
   </div>
-  <a href="#" onclick="openContact(event)" class="nav-cta">WORK WITH GV →</a>
+</nav>
+
+<!-- MOBILE NAV DRAWER -->
+<div class="mobile-nav" id="mobile-nav" style="display:none;">
+  <a href="#home" onclick="closeMobileMenu()">Home</a>
+  <a href="#about" onclick="closeMobileMenu()">About</a>
+  <a href="#shows" onclick="closeMobileMenu()">Shows</a>
+  <a href="blog.html">Thoughts</a>
+  <a href="#contact" onclick="closeMobileMenu()">Contact</a>
+  <div class="mobile-nav-search">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" placeholder="Search thoughts..." oninput="filterBlogs(this.value)">
+  </div>
+  <a href="#" onclick="openContact(event);closeMobileMenu();" class="mobile-nav-cta">WORK WITH GV →</a>
+  <div class="mobile-social">
+    <a href="https://www.instagram.com/thebrandgv" target="_blank" rel="noopener" aria-label="Instagram" style="border:1px solid var(--border-light);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);text-decoration:none;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+    </a>
+    <a href="https://www.linkedin.com/in/gokulvaas/" target="_blank" rel="noopener" aria-label="LinkedIn" style="border:1px solid var(--border-light);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);text-decoration:none;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="3"/><line x1="7" y1="11" x2="7" y2="17"/><line x1="7" y1="7" x2="7" y2="8"/><path d="M11 17v-6m0 0c0-1.5 5-1.5 5 0v6"/></svg>
+    </a>
+    <a href="https://www.youtube.com/channel/UCJzKuE6m9IgKJYxSURDXOmQ" target="_blank" rel="noopener" aria-label="YouTube" style="border:1px solid var(--border-light);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);text-decoration:none;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="3"/><polygon points="10,8 16,12 10,16" fill="currentColor" stroke="none"/></svg>
+    </a>
+    <a href="mailto:hello@thebrandgv.com" aria-label="Email" style="border:1px solid var(--border-light);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);text-decoration:none;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="3"/><polyline points="2,4 12,14 22,4"/></svg>
+    </a>
+  </div>
+</div>
 </nav>
 
 <!-- HERO -->
@@ -1275,6 +1495,46 @@
 
   // ── INIT ──
   refreshView();
+
+  // ── MOBILE MENU ──
+  function toggleMobileMenu() {
+    const nav = document.getElementById('mobile-nav');
+    const btn = document.getElementById('mobile-menu-btn');
+    const isOpen = nav.classList.contains('open');
+    if (isOpen) {
+      nav.classList.remove('open');
+      btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
+      document.body.style.overflow = '';
+    } else {
+      nav.classList.add('open');
+      btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+      document.body.style.overflow = 'hidden';
+    }
+  }
+  function closeMobileMenu() {
+    const nav = document.getElementById('mobile-nav');
+    const btn = document.getElementById('mobile-menu-btn');
+    nav.classList.remove('open');
+    btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
+    document.body.style.overflow = '';
+  }
+
+  // Show mobile menu btn on small screens
+  function checkMobileNav() {
+    const btn = document.getElementById('mobile-menu-btn');
+    const mobileNav = document.getElementById('mobile-nav');
+    if (window.innerWidth <= 768) {
+      btn.style.display = 'flex';
+      mobileNav.style.display = 'flex';
+    } else {
+      btn.style.display = 'none';
+      mobileNav.style.display = 'none';
+      mobileNav.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  }
+  window.addEventListener('resize', checkMobileNav);
+  checkMobileNav();
 
   // ── SCROLL PROGRESS BAR ──
   const scrollBar = document.getElementById('scroll-progress');
